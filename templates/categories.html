@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{.Category.Name}} Page</title>
+        <meta charset="utf-8">
+        <title>Index Page</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" type="image/png" href="/static/images/logo.png">
+        <link rel="stylesheet" href="/static/css/main.css">
+        <script type="text/javascript" src="/static/js/main.js"></script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,200..800;1,200..800&family=Rajdhani:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    </head>
+    <body>
+        {{template "nav"}}
+
+        <main>
+            <div class="card">
+                <div id="categories" class="categories">
+                    {{range $category := .Categories}}
+                    <div class="category">
+                        <a href="/category/{{.Slug}}"><img src="{{.Banner}}"></a>
+                        <a href="/category/{{.Slug}}"><h3>{{.Name}}</h3></a>
+                        <p>{{.PeakViewers}} peak viewers</p>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </main>
+
+        {{template "footer"}}
+    </body>
+
+    <script type="text/javascript">
+        let canLoad = true;
+        let page = {page: 3, canLoad:true };
+
+        window.onscroll = function(ev) {
+            if ((window.innerHeight + window.scrollY + 200) >= document.body.offsetHeight && page.canLoad) {
+                GetCategories(page);
+            }
+        };
+    </script>
+</html>
