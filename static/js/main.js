@@ -47,6 +47,27 @@ function GetClips(page) {
 	http.send();
 }
 
+async function FetchChartStats(s, t) {
+    const url = new URL(window.location.origin + "/api/v1/chart/stats");
+    url.searchParams.set("s", s);
+    url.searchParams.set("t", t);
+
+    try {
+        const response = await fetch(url);
+        
+        if (response.ok) {
+            const data = await response.json();
+			return data;
+        } else {
+            console.error('Error fetching chart stats:', response.status, response.statusText);
+			return null;
+        }
+    } catch (error) {
+        console.error('Error occurred while fetching chart stats:', error);
+		return null;
+    }
+}
+
 function PlayClip(src) {
 	var elem = document.createElement('div');
 	elem.setAttribute('class', 'video-player');
@@ -146,3 +167,42 @@ function RenderClips(target, data) {
 		</clip>`;
 	}
 }
+
+for (const dropdown of document.querySelectorAll(".custom-select-wrapper")) {
+    dropdown.addEventListener('click', function () {
+        this.querySelector('.custom-select').classList.toggle('open');
+    })
+}
+
+for (const option of document.querySelectorAll(".custom-option")) {
+    if (option.classList.contains('selected')) {
+        option.closest('.custom-select').querySelector('.custom-select__trigger span').textContent = option.textContent;
+    }
+
+    option.addEventListener('click', function () {
+        this.closest('.custom-select').querySelector('.custom-select__trigger span').textContent = this.textContent;
+            
+        var wrapper = this.closest('.custom-select-wrapper');
+
+        for (const option of this.closest('.custom-select').querySelectorAll(".custom-option")) {
+            option.classList.remove('selected');
+        }
+
+        this.classList.add('selected');
+        wrapper.dataset.value = this.dataset.value;
+        wrapper.dispatchEvent(new CustomEvent("selectChange", {
+            detail: {
+                value: this.textContent,
+                item: option,
+            },
+        }));
+    })
+}
+
+window.addEventListener('click', function (e) {
+    for (const select of document.querySelectorAll('.custom-select')) {
+        if (!select.contains(e.target)) {
+            select.classList.remove('open');
+        }
+    }
+});

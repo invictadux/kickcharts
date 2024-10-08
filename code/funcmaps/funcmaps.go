@@ -26,7 +26,17 @@ func DefaultFunctions() template.FuncMap {
 		"TimeSince":             TimeSince,
 		"FormatStringDate":      FormatStringDate,
 		"ToLower":               strings.ToLower,
+		"CalculatePercent":      CalculatePercent,
+		"Add":                   Add,
 	}
+}
+
+func Add(a, b int) int {
+	return a + b
+}
+
+func CalculatePercent(a, b int) float64 {
+	return float64(b) / float64(a) * 100
 }
 
 func ContainsString(s, v string) bool {
@@ -70,7 +80,7 @@ func TimeSince(t time.Time) string {
 }
 
 func FormatStringDate(dateStr, format string) string {
-	date, err := time.Parse("2006-01-02T15:04:05Z", dateStr)
+	date, err := time.Parse("2006-01-02 15:04:05", dateStr)
 
 	if err != nil {
 		return ""

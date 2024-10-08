@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"invictadux/code/db"
 	"invictadux/code/funcmaps"
-	"invictadux/code/scraper"
 	"log"
 	"net/http"
 	"strconv"
@@ -85,12 +84,39 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	t1 := now.Add(-time.Hour * 24 * 7).Format("2006-01-02 15:04:05")
 	t2 := now.Add(-time.Hour).Format("2006-01-02 15:04:05")
 
+	viewsChart := db.GetOverallViewsGraph(t1, t2)
+	channelsChart := db.GetOverallChannelsGraph(t1, t2)
+	categories, mostViews, mostChannels := db.GetCategoriesStats(0, 10)
+	channels, mostChannelViews := db.GetChannelsStats(0, 10)
+	clips, _ := db.GetClips(0, 10)
+	peak30DViews, peak30DViewsDate, allTimePeakViews, allTimePeakViewsDate, avg7DViews := db.GetOverallViewsStats()
+	peak30DChannels, peak30DChannelsDate, allTimePeakChannels, allTimePeakChannelsDate, avg7DChannels := db.GetOverallChannelsStats()
+
 	page := map[string]interface{}{}
-	page["ChannelsChart"] = db.GetOverallChannelsGraph(t1, t2)
-	page["ViewsChart"] = db.GetOverallViewsGraph(t1, t2)
-	page["Categories"], _ = db.GetCategories(0, 14)
-	page["Channels"], _ = db.GetChannels(0, 16)
-	page["Clips"], _ = db.GetClips(0, 6)
+	page["ChannelsChart"] = channelsChart
+	page["ViewsChart"] = viewsChart
+	page["Categories"] = categories
+	page["Channels"] = channels
+	page["Clips"] = clips
+
+	page["LiveViews"] = viewsChart.Values[len(viewsChart.Values)-1]
+	page["Peak30DViews"] = peak30DViews
+	page["Peak30DViewsDate"] = peak30DViewsDate
+	page["AllTimePeakViews"] = allTimePeakViews
+	page["AllTimePeakViewsDate"] = allTimePeakViewsDate
+	page["Avg7DViews"] = avg7DViews
+
+	page["LiveChannels"] = channelsChart.Values[len(channelsChart.Values)-1]
+	page["Peak30DChannels"] = peak30DChannels
+	page["Peak30DChannelsDate"] = peak30DChannelsDate
+	page["AllTimePeakChannels"] = allTimePeakChannels
+	page["AllTimePeakChannelsDate"] = allTimePeakChannelsDate
+	page["Avg7DChannels"] = avg7DChannels
+
+	page["MostCategoryViews"] = mostViews
+	page["MostCategoryChannels"] = mostChannels
+	page["MostChannelViews"] = mostChannelViews
+	page["MostClipViews"] = clips[0].Views
 
 	indexTemplate.Execute(w, page)
 }
@@ -245,10 +271,46 @@ func ClipsAPI(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(clips)
 }
 
+func ChartStatsAPI(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+
+	if !params.Has("s") {
+		w.Write([]byte(`{"status":"error","message":"s parameter required"}`))
+		return
+	} else if !params.Has("t") {
+		w.Write([]byte(`{"status":"error","message":"t parameter required"}`))
+		return
+	}
+
+	s := params.Get("s")
+	t := params.Get("t")
+
+	switch t {
+	case "w", "m", "q":
+	default:
+		w.Write([]byte(`{"status":"error","message":"t parameter not valid"}`))
+		return
+	}
+
+	var data any
+
+	switch s {
+	case "v":
+		data = db.GetViewersChartStats(t)
+	case "c":
+		data = db.GetChannelsChartStats(t)
+	default:
+		w.Write([]byte(`{"status":"error","message":"s parameter required"}`))
+		return
+	}
+
+	json.NewEncoder(w).Encode(data)
+}
+
 func main() {
 	mux := http.NewServeMux()
 	db.Init()
-	go scraper.Run()
+	//go scraper.Run()
 
 	indexTemplate = funcmaps.NewTemplate("templates/index.html", "templates/templates.html")
 	channelTemplate = funcmaps.NewTemplate("templates/channel.html", "templates/templates.html")
@@ -274,10 +336,11 @@ func main() {
 	mux.Handle("GET /api/v1/channels", APIMiddleware(http.HandlerFunc(ChannelsAPI)))
 	mux.Handle("GET /api/v1/categories", APIMiddleware(http.HandlerFunc(CategoriesAPI)))
 	mux.Handle("GET /api/v1/clips", APIMiddleware(http.HandlerFunc(ClipsAPI)))
+	mux.Handle("GET /api/v1/chart/stats", APIMiddleware(http.HandlerFunc(ChartStatsAPI)))
 
 	server := &http.Server{
 		Handler:      mux,
-		Addr:         ":8005",
+		Addr:         ":8011",
 		ReadTimeout:  7 * time.Second,
 		WriteTimeout: 7 * time.Second,
 	}

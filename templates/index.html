@@ -2,15 +2,15 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Kick Charts, Analytics and more</title>
+        <title>Kick Stats and Analytics: Growth Charts, Channels, Games, Streams · Kick Charts</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="#050509">
 
         <link rel="icon" type="image/png" href="/static/images/logo.png">
         <link rel="stylesheet" href="/static/css/main.css">
 
         <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
-        <script type="text/javascript" src="/static/js/main.js"></script>
+        <script type="text/javascript" src="/static/js/main.js" defer></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,107 +20,607 @@
         <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
         <link href="https://unpkg.com/@videojs/themes@1/dist/forest/index.css" rel="stylesheet">
         <script src="https://vjs.zencdn.net/8.10.0/video.min.js" defer></script>
+
+        <meta name="description" content="Up-to-date Kick statistics ➥ Get full statistics about Kick numbers ➚ Summary Kick analytics - Viewer count, Channels and games statistics">
+        <meta property="og:title" content="Kick Stats and Analytics: Growth Charts, Channels, Games, Streams · Streams Charts" />
+        <meta property="og:description" content="Up-to-date Kick statistics ➥ Get full statistics about Kick numbers ➚ Summary Kick analytics - Viewer count, Channels and games statistics" />
+        <meta property="og:image" content="https://kickcharts.net/static/images/overview.jpg" />
+        <meta name="twitter:image" content="https://kickcharts.net/static/images/overview.jpg" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Kick Stats and Analytics: Growth Charts, Channels, Games, Streams · Streams Charts" />
+        <meta name="twitter:description" content="Up-to-date Kick statistics ➥ Get full statistics about Kick numbers ➚ Summary Kick analytics - Viewer count, Channels and games statistics" />
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "Kick Stats and Analytics: Growth Charts, Channels, Games, Streams · Streams Charts",
+                "description": "Up-to-date Kick statistics ➥ Get full statistics about Kick numbers ➚ Summary Kick analytics - Viewer count, Channels and games statistics",
+                "image": "https://kickcharts.net/static/images/overview.jpg"
+            }
+        </script>
     </head>
     <body>
         {{template "nav"}}
 
         <main>
-            <div class="card">
-                <h2>Top Categories</h2>
-                <div class="categories">
-                    {{range $category := .Categories}}
-                    <div class="category">
-                        <a href="/category/{{.Slug}}"><img src="{{.Banner}}"></a>
-                        <a href="/category/{{.Slug}}"><h3>{{.Name}}</h3></a>
-                        <p>{{.PeakViewers}} peak viewers</p>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+                          </svg>
                     </div>
-                    {{end}}
+                    <h2>Overall Kick stats</h2>
+                </div>
+                <div class="oks">
+                    <div class="skeleton">
+                        <div class="box1">
+                            <h4>Live Viewers:</h4>
+                            <p class="views" style="font-size: 2em;">{{FormatWithCommas .LiveViews}}</p>
+                        </div>
+                        <div class="box2">
+                            <h4>Last 30 days peak:</h4>
+                            <p class="views">{{FormatWithCommas .Peak30DViews}}</p>
+                            <p class="time">{{FormatStringDate .Peak30DViewsDate "Jan 02, 2006 15:04"}}</p>
+                        </div>
+                        <div class="box3">
+                            <h4>All time peak:</h4>
+                            <p class="views">{{FormatWithCommas .AllTimePeakViews}}</p>
+                            <p class="time">{{FormatStringDate .AllTimePeakViewsDate "Jan 02, 2006 15:04"}}</p>
+                        </div>
+                        <div class="box4">
+                            <h5>Average Concurrent Viewers for the last 7 days:</h5>
+                            <p class="views">{{FormatWithCommas .Avg7DViews}}</p>
+                            <div id="chart-views" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton">
+                        <div class="box1">
+                            <h4>Live Channels:</h4>
+                            <p class="views" style="font-size: 2em;">{{FormatWithCommas .LiveChannels}}</p>
+                        </div>
+                        <div class="box2">
+                            <h4>Last 30 days peak:</h4>
+                            <p class="views">{{FormatWithCommas .Peak30DChannels}}</p>
+                            <p class="time">{{FormatStringDate .Peak30DChannelsDate "Jan 02, 2006 15:04"}}</p>
+                        </div>
+                        <div class="box3">
+                            <h4>All time peak:</h4>
+                            <p class="views">{{FormatWithCommas .AllTimePeakChannels}}</p>
+                            <p class="time">{{FormatStringDate .AllTimePeakChannelsDate "Jan 02, 2006 15:04"}}</p>
+                        </div>
+                        <div class="box4">
+                            <h5>Average Concurrent Channels for the last 7 days:</h5>
+                            <p class="views">{{FormatWithCommas .Avg7DChannels}}</p>
+                            <div id="chart-channels" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div id="chart-channels" class="chart"></div>
-            </div>
-
-            <div class="card">
-                <h2>Top Channels</h2>
-                <div class="channels">
-                    {{range $channel := .Channels}}
-                    <div class="channel">
-                        <a href="/channel/{{.Slug}}"><img src="{{.Picture}}"></a>
-                        <a href="/channel/{{.Slug}}"><h3>{{.Username}}</h3></a>
-                        <p>{{.PeakViewers}} peak viewers</p>
+            <div class="stats-card">
+                <div class="oks">
+                    <div class="flex-v-0" style="align-items: start;">
+                        <div class="flex-h-0">
+                            <div class="b">
+                                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                                    <path d="M10 5V1.333H6V5l2 2 2-2zM5 6H1.333v4H5l2-2-2-2zm1 5v3.667h4V11L8 9l-2 2zm5-5L9 8l2 2h3.667V6H11z"></path>
+                                </svg>
+                            </div>
+                            <h2>Most popular live categories</h2>
+                        </div>
+                        <div class="table-0">
+                            <table class="table1">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                            <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                          </svg></th>
+                                        <th style="text-align: left;">Name</th>
+                                        <th>Live Viewers</th>
+                                        <th>Live Channels</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range $i, $category := .Categories}}
+                                    <tr>
+                                        <td>{{Add $i 1}}</td>
+                                        <td><a href="/category/{{.Slug}}"><img class="category-img" src="{{.Banner}}"></a></td>
+                                        <td style="text-align: left;"><a href="/category/{{.Slug}}"><h3>{{.Name}}</h3></a></td>
+                                        <td style="position: relative; text-align: right;">
+                                            <div>{{FormatWithCommas .LiveViewers}}</div>
+                                            <div class="progress-container"><div class="progress-bar" 
+                                                style="background-color: #35da3a; width: {{CalculatePercent $.MostCategoryViews .LiveViewers}}%;"></div>
+                                            </div>
+                                        </td>
+                                        <td style="position: relative; text-align: right;">
+                                            <div>{{FormatWithCommas .LiveChannels}}</div>
+                                            <div class="progress-container"><div class="progress-bar" 
+                                                style="background-color: #9f0bff; width: {{CalculatePercent $.MostCategoryChannels .LiveChannels}}%;"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                            <a class="full-list-btn" href="/categories">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                              </svg></a>
+                        </div>
                     </div>
-                    {{end}}
+                    <div class="flex-v-0" style="align-items: start;">
+                        <div class="flex-h-0">
+                            <div class="b">{{template "camera"}}</div>
+                            <h2>Most popular live channels</h2>
+                        </div>
+                        <div class="table-0">
+                            <table class="table1">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                            <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                          </svg></th>
+                                        <th style="text-align: left;">Name</th>
+                                        <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.58 10.046 6.886 8.373l.02-.02A11.68 11.68 0 0 0 9.38 4h1.953V2.666H6.666V1.333H5.333v1.333H.667v1.327h7.446A10.475 10.475 0 0 1 6 7.566a10.43 10.43 0 0 1-1.54-2.233H3.127a11.708 11.708 0 0 0 1.986 3.04L1.72 11.72l.947.946L6 9.333l2.073 2.073.507-1.36zm3.753-3.38H11l-3 8h1.333l.747-2h3.166l.754 2h1.333l-3-8zm-1.747 4.667 1.08-2.887 1.08 2.887h-2.16z" clip-rule="evenodd"></path></svg></th>
+                                        <th>Live Viewers</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range $i, $channel := .Channels}}
+                                    <tr>
+                                        <td>{{Add $i 1}}</td>
+                                        <td><a href="/channel/{{.Slug}}"><img class="profile-pic" src="{{.Picture}}"></a></td>
+                                        <td style="text-align: left;"><a href="/channel/{{.Slug}}"><h3>{{.Username}}</h3></a></td>
+                                        <td>{{.Language}}</td>
+                                        <td style="position: relative; text-align: right;">
+                                            <div>{{.PeakViewers}}</div>
+                                            <div class="progress-container">
+                                                <div class="progress-bar" style="background-color: #35da3a; width: {{CalculatePercent $.MostChannelViews .PeakViewers}}%;"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                            <a class="full-list-btn" href="/channels">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                              </svg></a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div id="chart-views" class="chart"></div>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg width="16" height="16"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path d="M2 8h2.667v6H2V8zm9.333-2.667H14V14h-2.667V5.333zm-4.666-4h2.666V14H6.667V1.333z"></path>
+                        </svg>
+                    </div>
+                    <h2>Kick stats</h2>
+                </div>
+                <div class="chart-view">
+                    <div class="options">
+                        <div id="stats-select" class="custom-select-wrapper" style="margin-bottom: 1em;">
+                            <div class="custom-select">
+                                <div class="custom-select__trigger">
+                                    <span>By Week</span>
+                                    <div class="arrow"></div>
+                                </div>
+                                <div class="custom-options">
+                                    <span class='custom-option selected' data-value="w">By Week</span>
+                                    <span class='custom-option' data-value="m">By Month</span>
+                                    <span class='custom-option' data-value="q">By Quarter</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="viewers-btn" class="selected"><svg class="svg-left" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green" viewBox="0 0 16 16">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                          </svg>Viewers{{template "chevron-right"}}
+                        </button>
+                        <button id="channels-btn"><svg class="svg-left" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#9f0bff" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/>
+                        </svg>Channels{{template "chevron-right"}}</button>
+                        <button id="hwatched-btn"><svg class="svg-left" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#0070ff" viewBox="0 0 16 16">
+                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+                          </svg>Hours Watched{{template "chevron-right"}}</button>
+                        <button id="hstreamed-btn"><svg class="svg-left" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffd500" viewBox="0 0 16 16">
+                            <path d="M3.05 3.05a7 7 0 0 0 0 9.9.5.5 0 0 1-.707.707 8 8 0 0 1 0-11.314.5.5 0 0 1 .707.707m2.122 2.122a4 4 0 0 0 0 5.656.5.5 0 1 1-.708.708 5 5 0 0 1 0-7.072.5.5 0 0 1 .708.708m5.656-.708a.5.5 0 0 1 .708 0 5 5 0 0 1 0 7.072.5.5 0 1 1-.708-.708 4 4 0 0 0 0-5.656.5.5 0 0 1 0-.708m2.122-2.12a.5.5 0 0 1 .707 0 8 8 0 0 1 0 11.313.5.5 0 0 1-.707-.707 7 7 0 0 0 0-9.9.5.5 0 0 1 0-.707zM10 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0"/>
+                          </svg>Hours streamed{{template "chevron-right"}}</button>
+                    </div>
+                    <div>
+                        <div id="chart-stats" style="width: 100%; height: 100%; padding-left: .5em;"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="card">
-                <div class="clips" id="clips">
-                    {{range $clip := .Clips}}
-                       {{template "clip" $clip}}
-                    {{end}}
-              </div>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                          </svg>
+                    </div>
+                    <h2>Latest Clips</h2>
+                </div>
+                <div>
+                    <div class="table-0">
+                        <table class="table1">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Img</th>
+                                    <th style="text-align: left;">Title</th>
+                                    <th>Views</th>
+                                    <th>Duration</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $i, $clip := .Clips}}
+                                <tr>
+                                    <td>{{Add $i 1}}</td>
+                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
+                                    <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
+                                    <td style="position: relative; text-align: right;">
+                                        <div>{{FormatWithCommas .Views}}</div>
+                                        <div class="progress-container"><div class="progress-bar" 
+                                            style="background-color: #35da3a; width: {{CalculatePercent $.MostClipViews .Views}}%;"></div>
+                                        </div>
+                                    </td>
+                                    <td>{{.Duration}}s</td>
+                                    <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                        <a class="full-list-btn" href="/clips">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                          </svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta">
+                <h2>Kick statistics and analytics</h2>
+                <p>
+                    The page displays real-time Kick statistics, as well as the main record values for key metrics. 
+                    Weekly and monthly statistics are also available here; it helps one get a basic idea of Kick audience behavior.
+                </p>
+                <h2>What are Kick stats?</h2>
+                <p>
+                    Kick stats show the most relevant data by key metrics. In particular, the viewers now parameter gives an 
+                    idea of how many people are on the Kick site right now. Similarly, channels now is a counts channels 
+                    that are currently broadcasting live, etc.
+                </p>
+                <h2>How to check Kick Stats?</h2>
+                <p>
+                    The main current Kick metrics are available on this page. If you need Kick analytics for a specific channel, 
+                    just enter its name in the search bar and get its detailed statistics.
+                </p>
+                <h2>How do i see my Kick stats?</h2>
+                <p>
+                    To find out your statistics, just use Kick stats tracker. Simply search for your nickname and proceed 
+                    to your channel page on Kick Charts to get the information you need.
+                </p>
+                <h2>How do you find streamers stats?</h2>
+                <p>
+                    Kick Charts collects Kick streamers stats from channels with 1+ Average Viewers. More details on 
+                    the nuances of collecting data from other platforms can be found in the About section.
+                </p>
+                <h2>How many people stream on Kick?</h2>
+                <p>
+                    On average, there are always several tens of thousands of Kick channels on air. In total, the total number of broadcast channels is
+                    100,000+ by Total streamers parameter (note that these figures are based on Kick channels statistics collected by Kick Charts).
+                </p>
+                <h2>How many streamers are on Kick right now?</h2>
+                <p>
+                    Tens of thousands of channels broadcast on Kick every second. The current Kick streamers statistics of 
+                    this particular moment is {{FormatWithCommas .LiveChannels}} Channels now.
+                </p>
+                <h2>How many people watch Kick?</h2>
+                <p>
+                    Millions of users visit Kick every day. If we talk about the concurrent Kick viewership, then it is necessary 
+                    to focus on Average Viewers (sorted by a specific time period) and Peak online viewers, which stands at {{FormatWithCommas .AllTimePeakViews}} people.
+                </p>
+                <h2>How many viewers are on Kick right now?</h2>
+                <p>
+                    Kick viewers statistics vary for various reasons, including specific time of the day. The current indicator 
+                    for the Kick at a given moment is {{FormatWithCommas .LiveViews}} Viewers now.
+                </p>
+                <h2>Is Kick still growing?</h2>
+                <p>
+                    Kick becomes more and more popular all over the world every year. The audience of the service (both 
+                    viewers and streamers) is growing year by year, and one of the reasons for it is an active promotion in 
+                    various regions, for example, Latin America.
+                </p>
+                <h2>How many games streamed on Kick?</h2>
+                <p>
+                    Kick creators stream across tens of thousands of different categories and games every month. Up-to-date 
+                    data for the last month is 10,000+ Games Streamed.
+                </p>
+                <h2>How many games streamed on Kick right now?</h2>
+                <p>
+                    Kick games stats can be seen at the very top of this page and it amounts to 4000+ Games being streamed right now.
+                </p>
+                <h2>What is the average viewer count on Kick?</h2>
+                <p>
+                    Average viewer count is a number of concurrent viewers watching one's stream. To calculate this figure, 
+                    one needs to know how many viewers are watching the broadcast at any time throughout its entire duration.
+                </p>
+                <h2>What is a unique viewer on Kick?</h2>
+                <p>
+                    Unique viewers count is an average value of registered Kick users to those who follow stream anonymously.
+                </p>
             </div>
         </main>
 
         {{template "footer"}}
 
         <script type="text/javascript">
+            const selectStats = document.getElementById('stats-select');
+            var t = 'w';
+            const viewersButton = document.getElementById('viewers-btn');
+            const channelsButton = document.getElementById('channels-btn');
+            const hwatchedButton = document.getElementById('hwatched-btn');
+            const hstreamedButton = document.getElementById('hstreamed-btn');
+            const buttonsGroup = [viewersButton,channelsButton,hwatchedButton,hstreamedButton];
+
+            function selectButton(btn) {
+                buttonsGroup.forEach(element => {
+                    element.classList.remove('selected');
+                });
+
+                btn.classList.add('selected');
+            }
+
             const channels_dates = {{.ChannelsChart.Dates}};
             const channels_values = {{.ChannelsChart.Values}};
             const views_dates = {{.ViewsChart.Dates}};
             const views_values = {{.ViewsChart.Values}};
 
-            var chart1 = echarts.init(document.getElementById('chart-channels'), 'light', {
+            var chart1 = echarts.init(document.getElementById('chart-views'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
             });
 
-            var chart2 = echarts.init(document.getElementById('chart-views'), 'light', {
+            var chart2 = echarts.init(document.getElementById('chart-channels'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
+            });
+
+            var chart3 = echarts.init(document.getElementById('chart-stats'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            selectStats.addEventListener('selectChange', function(e) {
+                t = this.dataset.value;
+            });
+
+            viewersButton.addEventListener('click', function(e) {
+                if (!this.classList.contains('selected')) {
+                    selectButton(this);
+                    FetchChartStats("v", t).then(data => {
+                        if (data) {
+                            option3.xAxis.data = data['dates'];
+                            option3.series = [
+                                {
+                                    name: 'Peak Viewers', 
+                                    data: data['peak'],
+                                    type: 'line',
+                                    smooth: true,
+                                    lineStyle: {
+                                        width: 1
+                                    },
+                                    itemStyle: {
+                                        color: '#35da3a'
+                                    },
+                                    areaStyle: {
+                                        color: '#35da3a',
+                                        opacity: 0.5
+                                    },
+                                },
+                                {
+                                    name: 'Average Viewers', 
+                                    data: data['avg'],
+                                    type: 'line',
+                                    smooth: true,
+                                    lineStyle: {
+                                        width: 1
+                                    },
+                                    itemStyle: {
+                                        color: '#ffd100'
+                                    },
+                                    areaStyle: {
+                                        color: '#ffd100',
+                                        opacity: 0.5
+                                    },
+                                }
+                            ];
+
+                            chart3.setOption(option3);
+                        }
+                    });
+                }
+            });
+
+            channelsButton.addEventListener('click', function(e) {
+                if (!this.classList.contains('selected')) {
+                    selectButton(this);
+                    FetchChartStats("c", t).then(data => {
+                        if (data) {
+                            option3.xAxis.data = data['dates'];
+                            option3.series = [
+                                {
+                                    name: 'Peak Channels', 
+                                    data: data['peak'],
+                                    type: 'line',
+                                    smooth: true,
+                                    lineStyle: {
+                                        width: 1
+                                    },
+                                    itemStyle: {
+                                        color: '#9f0bff'
+                                    },
+                                    areaStyle: {
+                                        color: '#9f0bff',
+                                        opacity: 0.5
+                                    },
+                                },
+                                {
+                                    name: 'Average Channels', 
+                                    data: data['avg'],
+                                    type: 'line',
+                                    smooth: true,
+                                    lineStyle: {
+                                        width: 1
+                                    },
+                                    itemStyle: {
+                                        color: '#ffd100'
+                                    },
+                                    areaStyle: {
+                                        color: '#ffd100',
+                                        opacity: 0.5
+                                    },
+                                }
+                            ];
+
+                            chart3.setOption(option3);
+                        }
+                    });
+                }
             });
 
             var option1 = {
-                backgroundColor: '#1c1d1f',
-                title: {
-                    text: 'Channels',
-                    left: 'center',
-                    top: '1%',
-                    textStyle: {
-                        fontFamily: 'karla',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#dedede',
-                    }
-                },
+                backgroundColor: '#1c1c22',
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
+                                    <span style="color:${item.color};">Viewers: </span>
+                                    <span>${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {
+                            show: true,
+                            title: 'Save Image',
+                            name: 'kickcharts_overall_views',
+                            type: 'png',
+                            pixelRatio: 2,
+                            excludeComponents: ['toolbox']
+                        }
                     }
                 },
                 grid: {
-                    left: '3%',
-                    right: '3%',
+                    left: '0%',
+                    right: '0%',
                     top: '15%',
-                    bottom: '7%',
+                    bottom: '0%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: views_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
+                },
+                series: [
+                {
+                    data: views_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#35da3a'
+                    },
+                    areaStyle: {
+                        color: '#35da3a',
+                        opacity: 0.5
+                    },
+                }]
+            };
+
+            var option2 = {
+                backgroundColor: '#1c1c22',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
+                                    <span style="color:${item.color};">Channels: </span>
+                                    <span>${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                grid: {
+                    left: '0%',
+                    right: '0%',
+                    top: '15%',
+                    bottom: '0%',
                     containLabel: true
                 },
                 toolbox: {
                     feature: {
-                        dataZoom: {
-                            yAxisIndex: false
-                        },
                         saveAsImage: {
                             show: true,
                             title: 'Save Image',
-                            name: 'channels',
+                            name: 'kickcharts_overall_channels',
                             type: 'png',
                             pixelRatio: 2,
                             excludeComponents: ['toolbox']
@@ -130,68 +630,79 @@
                 xAxis: {
                     type: 'category',
                     data: channels_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 yAxis: {
                     type: 'value',
-					splitLine: {
-						show: true,
-						lineStyle: {
-							color: '#303030',
-							type: 'dashed'
-						}
-					}
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 series: [
                 {
-                        data: channels_values,
-                        type: 'line',
-                        smooth: true,
-                        itemStyle: {
-                            color: '#3b85ff'
-                        },
-                        areaStyle: {
-                            color: '#3b85ff',
-                            opacity: 0.3
-                        },
-                    }
-                ]
+                    data: channels_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#9f0bff'
+                    },
+                    areaStyle: {
+                        color: '#9f0bff',
+                        opacity: 0.5
+                    },
+                }]
             };
 
-            var option2 = {
-                backgroundColor: '#1c1d1f',
-                title: {
-                    text: 'Viewers',
-                    left: 'center',
-                    top: '1%',
-                    textStyle: {
-                        fontFamily: 'karla',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#dedede',
-                    }
-                },
+            var option3 = {
+                backgroundColor: '#1c1c22',
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; align-items: center; padding: .25em 1em; font-size:.9em;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${item.color}; margin-right: 5px;"></span>
+                                    <span>${item.seriesName}: ${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
                     }
                 },
                 grid: {
-                    left: '3%',
-                    right: '3%',
+                    left: '0%',
+                    right: '0%',
                     top: '15%',
-                    bottom: '7%',
+                    bottom: '1%',
                     containLabel: true
                 },
                 toolbox: {
                     feature: {
-                        dataZoom: {
-                            yAxisIndex: false
-                        },
                         saveAsImage: {
                             show: true,
                             title: 'Save Image',
-                            name: 'views',
+                            name: 'kickcharts_overall_channels',
                             type: 'png',
                             pixelRatio: 2,
                             excludeComponents: ['toolbox']
@@ -200,36 +711,53 @@
                 },
                 xAxis: {
                     type: 'category',
-                    data: views_dates,
+                    data: channels_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 yAxis: {
                     type: 'value',
+                    scale: true,
 					splitLine: {
 						show: true,
 						lineStyle: {
 							color: '#303030',
-							type: 'dashed'
 						}
 					}
                 },
                 series: [
-                    {
-                        data: views_values,
-                        type: 'line',
-                        smooth: true,
-                        itemStyle: {
-                            color: '#3b85ff'
-                        },
-                        areaStyle: {
-                            color: '#3b85ff',
-                            opacity: 0.3
-                        },
-                    }
-                ]
+                {
+                    name: 'Viewers', 
+                    data: channels_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#35da3a'
+                    },
+                    areaStyle: {
+                        color: '#35da3a',
+                        opacity: 0.3
+                    },
+                }]
             };
 
             chart1.setOption(option1);
             chart2.setOption(option2);
+            chart3.setOption(option3);
+
+            chart1.group = 'group1';
+            chart2.group = 'group1';
+            echarts.connect('group1');
+
+            window.addEventListener('resize', function() {
+                chart1.resize();
+                chart2.resize();
+                chart3.resize();
+            });
         </script>
     </body>
 </html>

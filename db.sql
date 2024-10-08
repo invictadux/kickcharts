@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS channels(
     picture TEXT NOT NULL,
     is_banned BOOLEAN NOT NULL,
     language TEXT NOT NULL,
+    live BOOLEAN NOT NULL,
+    live_viewers INTEGER NOT NULL,
     followers_count INTEGER NOT NULL,
     peak_viewers INTEGER NOT NULL,
     description TEXT NOT NULL,
@@ -25,8 +27,10 @@ CREATE TABLE IF NOT EXISTS categories(
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     banner TEXT NOT NULL,
-    peak_channels INTEGER NOT NULL,
+    live_viewers INTEGER NOT NULL,
+    live_channels INTEGER NOT NULL,
     peak_viewers INTEGER NOT NULL,
+    peak_channels INTEGER NOT NULL,
     description TEXT NOT NULL
 );
 

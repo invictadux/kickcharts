@@ -23,10 +23,11 @@ html {
 }
 
 body {
-    background-color: #17181b;
+    background-color: #050509;
     color: white;
     --green: #28f30e;
     --border: rgba(255, 255, 255, 0.13);
+    --card-color: #1c1c22;
 
     font-family: "Karla", sans-serif;
     font-optical-sizing: auto;
@@ -67,7 +68,7 @@ main {
     gap: 1em;
     margin: 0 auto;
     padding: 1em;
-    max-width: 1200px;
+    max-width: 1300px;
 }
 
 .chart {
@@ -78,7 +79,7 @@ main {
 .card {
     border-radius: .5em;
     padding: 1em;
-    background: rgba(255, 255, 255, 0.02);
+    background: #17181b;
     border: 1px solid var(--border);
 }
 
@@ -137,46 +138,82 @@ main {
 
 /*---------------------- Table ----------------------*/
 
-table {
+.table-0 {
+    width: 100%;
+    background: var(--card-color);
+    border-radius: .5em;
+}
+
+.table1 {
+    border-spacing: 0;
+    border-collapse: collapse;
     width: 100%;
     font-family: "Rajdhani", sans-serif;
-}
-
-table .g {
-    color: #28f30e;
-}
-
-table .r {
-    color: #f30e0e;
-}
-
-thead {
-    background-color: #000000;
-}
-
-thead th {
-    padding: .5em;
-}
-
-tbody {
-    font-family: "Karla", sans-serif;
-}
-
-tbody td {
     text-align: center;
-    padding: .5em;
-    font-weight: 400;
+}
+
+.table1 thead {
+    border-bottom: 1px solid #2e2e2e;
+}
+
+.table1 th {
+    vertical-align: middle;
+    padding: .75em;
+}
+
+.table1 td {
+    padding: 0 .8em;
+}
+
+.table1 a {
+    text-decoration: none;
+    color: #bebebe;
+    font-weight: 300;
     font-size: .9em;
 }
 
-tbody tr:nth-child(odd) {
-    background-color: #1c1c22;
+.table1 tbody tr:nth-child(even) {
+    background-color: #15151a;
     color: #fff;
 }
 
-tbody tr:nth-child(even) {
-    background-color: #15151a;
-    color: #fff;
+.progress-container {
+    bottom: 0;
+    width: 100%;
+    background-color: #2b2b33;
+    direction: rtl;
+}
+
+.progress-bar {
+    height: 2px;
+}
+
+.full-list-btn {
+    font-family: 'Karla';
+    font-size: .9em;
+    font-weight: 400;
+    padding: .75em 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background-color: #272a30;
+    border-radius: 0 0 .5em .5em;
+    text-align: center;
+    text-decoration: none;
+    color: #ffffff;
+    transition: .2s;
+}
+
+.full-list-btn svg {
+    margin-left: .3em;
+    width: 21px; 
+    height: 21px;
+    fill: #ffffff;
+}
+
+.full-list-btn:hover {
+    background-color: #2c3038;
 }
 
 /*---------------------- Category ----------------------*/
@@ -461,4 +498,320 @@ footer a {
 
 footer a:hover {
     color: var(--green);
+}
+
+/*----------------------------- Custom select -------------------------------*/
+
+.custom-select-wrapper {
+    font-family: 'Karla';
+    position: relative;
+    user-select: none;
+}
+
+.custom-select {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: .3em;
+}
+
+.custom-select__trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 .6em;
+    font-size: 0.85em;
+    font-weight: 300;
+    background: #2a2a31;
+    color: #ffffff;
+    height: 2.5em;
+    cursor: pointer;
+    border-radius: 0.3em;
+}
+
+.custom-options {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    padding: 0.2em;
+    top: 100%;
+    margin-top: .2em;
+    border-radius: .25em;
+    left: 0;
+    right: 0;
+    background-color: #2a2a31;
+    transition: all 0.25s;
+    opacity: 0;
+    max-height: 300px;
+    visibility: hidden;
+    overflow-y: auto;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.custom-select.open .custom-options {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+.custom-option {
+    position: relative;
+    display: block;
+    border-radius: 0.1em;
+    padding: .6em;
+    font-size: 0.8em;
+    font-weight: 300;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.custom-option:hover {
+    cursor: pointer;
+    background-color: #505057;
+}
+
+.custom-option.selected {
+    color: #ffffff;
+    background-color: #505057;
+}
+
+.arrow {
+    position: relative;
+    height: 8px;
+    width: 8px;
+}
+
+.arrow::before, .arrow::after {
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    width: 0.15rem;
+    height: 100%;
+    transition: all 0.25s;
+}
+
+.arrow::before {
+    left: -2.5px;
+    transform: rotate(90deg);
+    background-color: #ffffff;
+}
+
+.arrow::after {
+    left: 2.5px;
+    transform: rotate(90deg);
+    background-color: #ffffff;
+}
+
+.open .arrow::before {
+    left: -2.5px;
+    transform: rotate(135deg);
+}
+
+.open .arrow::after {
+    left: 2.5px;
+    transform: rotate(45deg);
+}
+
+/*----------------------------- Other -------------------------------*/
+
+.b {
+    background-color: var(--card-color);
+    border-radius: .35em;
+    padding: .4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.b svg {
+    fill: #a0a0a0;
+}
+
+.flex-v-0 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5em;
+}
+
+.flex-h-0 {
+    display: flex;
+    align-items: center;
+    gap: .5em;
+}
+
+.stats-card {
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+}
+
+.oks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+}
+
+.oks h4,p,h5 {
+    padding: 0;
+    margin: 0;
+}
+
+.oks h4,h5 {
+    color: #e4e4e4;
+    font-weight: 300;
+    font-size: .85em;
+}
+
+.skeleton {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    background: var(--card-color);
+    border-radius: .5em;
+}
+
+.skeleton .time {
+    font-size: .8em;
+    width: 100%;
+    padding: .25em;
+    text-align: center;
+    background: #505057;
+    border-radius: .5em;
+}
+
+.skeleton .views {
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.skeleton .box1 {
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    grid-column: 1 / 2;
+    border-bottom: 1px solid black;
+    padding: 1em;
+}
+  
+.skeleton .box2 {
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    grid-column: 2 / 3;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 1em;
+}
+  
+.skeleton .box3 {
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    grid-column: 3 / 4;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 1em;
+}
+  
+.skeleton .box4 {
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    grid-column: 1 / 4;
+    width: 100%;
+    height: 220px;
+    padding: 1em;
+}
+
+.category-img {
+    width: 26px;
+    height: 36px;
+}
+
+.profile-pic {
+    width: 36px;
+    height: 36px;
+    border-radius: 100%;
+}
+
+.clip-img {
+    height: 36px;
+    aspect-ratio: 16 / 9; 
+}
+
+.chart-view {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    background: var(--card-color);
+    border-radius: .5em;
+    padding: 1em;
+    height: 300px;
+}
+
+.chart-view .options {
+    display: flex;
+    flex-direction: column;
+    gap: .2em;
+    padding-right: 1em;
+    border-right: 1px solid #2a2a2c;
+}
+
+.chart-view button {
+    display: flex;
+    align-items: center;
+    font-family: 'Karla';
+    font-weight: 500;
+    appearance: button;
+    backface-visibility: hidden;
+    background: none;
+    border-radius: .2em;
+    border-width: 0;
+    color: #fff;
+    cursor: pointer;
+    font-size: .9em;
+    outline: none;
+    overflow: hidden;
+    text-align: left;
+    padding: .7em;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    width: 100%;
+}
+
+.chart-view button .svg-left {
+    margin-right: .5em;
+}
+
+.chart-view button .svg-right {
+    position: absolute;
+    right: .5em;
+}
+
+.chart-view button:hover {
+    background-color: #2a2a31;
+}
+
+.chart-view button.selected {
+    background-color: #2a2a31;
+}
+
+.meta {
+    font-family: 'Karla';
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+}
+
+.meta h2 {
+    font-size: 1.4em;
+}
+
+.meta p {
+    font-size: .9em;
+    margin-bottom: 1em;
 }

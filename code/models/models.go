@@ -11,8 +11,10 @@ type Channel struct {
 	Slug           string `json:"slug"`
 	Banner         string `json:"banner"`
 	Picture        string `json:"picture"`
-	Language       string `json:"language"`
 	IsBanned       bool   `json:"is_banned"`
+	Language       string `json:"language"`
+	Live           bool   `json:"live"`
+	LiveViewers    int    `json:"live_viewers"`
 	FollowersCount int    `json:"followers_count"`
 	PeakViewers    int    `json:"peak_viewers"`
 	Description    string `json:"description"`
@@ -26,18 +28,18 @@ type Channel struct {
 
 func (c *Channel) Scan(rows *sql.Rows) error {
 	err := rows.Scan(&c.ID, &c.Username, &c.Slug, &c.Banner,
-		&c.Picture, &c.IsBanned, &c.Language, &c.FollowersCount, &c.PeakViewers,
-		&c.Description, &c.Discord, &c.Facebook, &c.Instagram,
-		&c.Tiktok, &c.Twitter, &c.Youtube)
+		&c.Picture, &c.IsBanned, &c.Language, &c.Live, &c.LiveViewers,
+		&c.FollowersCount, &c.PeakViewers, &c.Description, &c.Discord,
+		&c.Facebook, &c.Instagram, &c.Tiktok, &c.Twitter, &c.Youtube)
 
 	return err
 }
 
 func (c *Channel) ScanRow(row *sql.Row) error {
 	err := row.Scan(&c.ID, &c.Username, &c.Slug, &c.Banner,
-		&c.Picture, &c.IsBanned, &c.Language, &c.FollowersCount, &c.PeakViewers,
-		&c.Description, &c.Discord, &c.Facebook, &c.Instagram,
-		&c.Tiktok, &c.Twitter, &c.Youtube)
+		&c.Picture, &c.IsBanned, &c.Language, &c.Live, &c.LiveViewers,
+		&c.FollowersCount, &c.PeakViewers, &c.Description, &c.Discord,
+		&c.Facebook, &c.Instagram, &c.Tiktok, &c.Twitter, &c.Youtube)
 
 	return err
 }
@@ -47,21 +49,25 @@ type Category struct {
 	Name         string `json:"name"`
 	Slug         string `json:"slug"`
 	Banner       string `json:"banner"`
-	PeakChannels int    `json:"peak_channels"`
+	LiveViewers  int    `json:"live_viewers"`
+	LiveChannels int    `json:"live_channels"`
 	PeakViewers  int    `json:"peak_viewers"`
+	PeakChannels int    `json:"peak_channels"`
 	Description  string `json:"description"`
 }
 
 func (c *Category) Scan(rows *sql.Rows) error {
 	err := rows.Scan(&c.ID, &c.Name, &c.Slug, &c.Banner,
-		&c.PeakChannels, &c.PeakViewers, &c.Description)
+		&c.LiveViewers, &c.LiveChannels, &c.PeakViewers,
+		&c.PeakChannels, &c.Description)
 
 	return err
 }
 
 func (c *Category) ScanRow(row *sql.Row) error {
 	err := row.Scan(&c.ID, &c.Name, &c.Slug, &c.Banner,
-		&c.PeakChannels, &c.PeakViewers, &c.Description)
+		&c.LiveViewers, &c.LiveChannels, &c.PeakViewers,
+		&c.PeakChannels, &c.Description)
 
 	return err
 }
@@ -99,7 +105,8 @@ func (g *Graph) Scan(rows *sql.Rows) error {
 		var date string
 		var value int
 		rows.Scan(&date, &value)
-		g.Dates = append(g.Dates, date)
+		t, _ := time.Parse("2006-01-02 15:04:05", date)
+		g.Dates = append(g.Dates, t.Format("Jan 02, 2006 15:04"))
 		g.Values = append(g.Values, value)
 	}
 

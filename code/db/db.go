@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"invictadux/code/models"
 
@@ -20,10 +21,10 @@ func Init() *sql.DB {
 
 func InsertChannel(c models.Channel) error {
 	_, err := db.Exec(`INSERT OR IGNORE INTO channels (username, slug, banner, picture, is_banned, language,
-	followers_count, peak_viewers, description, discord, facebook, instagram, tiktok,
-	twitter, youtube) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, c.Username, c.Slug, c.Banner, c.Picture, c.IsBanned,
-		c.Language, c.FollowersCount, c.PeakViewers, c.Description, c.Discord, c.Facebook, c.Instagram, c.Tiktok,
-		c.Twitter, c.Youtube)
+	live, live_viewers, followers_count, peak_viewers, description, discord, facebook, instagram, tiktok,
+	twitter, youtube) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, c.Username, c.Slug, c.Banner, c.Picture, c.IsBanned,
+		c.Language, c.Live, c.LiveViewers, c.FollowersCount, c.PeakViewers, c.Description, c.Discord, c.Facebook,
+		c.Instagram, c.Tiktok, c.Twitter, c.Youtube)
 
 	if err != nil {
 		return err
@@ -33,9 +34,9 @@ func InsertChannel(c models.Channel) error {
 }
 
 func InsertCategory(c models.Category) error {
-	_, err := db.Exec(`INSERT INTO categories (name, slug, banner, peak_channels,
-		peak_viewers, description) VALUES (?,?,?,?,?,?)`, c.Name, c.Slug, c.Banner,
-		c.PeakChannels, c.PeakViewers, c.Description)
+	_, err := db.Exec(`INSERT INTO categories (name, slug, banner, live_viewers, live_channels,
+	peak_viewers, peak_channels, description) VALUES (?,?,?,?,?,?,?,?)`, c.Name, c.Slug, c.Banner,
+		c.LiveViewers, c.LiveChannels, c.PeakViewers, c.PeakChannels, c.Description)
 
 	if err != nil {
 		return err
@@ -146,7 +147,7 @@ func UpdateChannel(id int, params map[string]interface{}) error {
 	return nil
 }
 
-func UpdateCategory(id int, params map[string]interface{}) error {
+func UpdateCategory(slug string, params map[string]interface{}) error {
 	if len(params) == 0 {
 		return fmt.Errorf("no parameters provided to update")
 	}
@@ -161,9 +162,9 @@ func UpdateCategory(id int, params map[string]interface{}) error {
 
 	setClause := strings.Join(keys, ", ")
 
-	sqlStmt := fmt.Sprintf("UPDATE categories SET %s WHERE id=?", setClause)
+	sqlStmt := fmt.Sprintf("UPDATE categories SET %s WHERE slug=?", setClause)
 
-	values = append(values, id)
+	values = append(values, slug)
 
 	_, err := db.Exec(sqlStmt, values...)
 
@@ -225,6 +226,57 @@ func GetChannels(offset, limit int) ([]models.Channel, error) {
 	}
 
 	return channels, nil
+}
+
+func GetCategoriesStats(offset, limit int) ([]models.Category, int, int) {
+	categories := []models.Category{}
+	mostViews := 0
+	mostChannels := 0
+
+	rows, err := db.Query(`SELECT * FROM categories ORDER BY live_viewers DESC limit ?,?`, offset, limit)
+
+	if err != nil {
+		return categories, mostViews, mostChannels
+	}
+
+	for rows.Next() {
+		var c models.Category
+		c.Scan(rows)
+		categories = append(categories, c)
+
+		if c.LiveViewers > mostViews {
+			mostViews = c.LiveViewers
+		}
+
+		if c.LiveChannels > mostChannels {
+			mostChannels = c.LiveChannels
+		}
+	}
+
+	return categories, mostViews, mostChannels
+}
+
+func GetChannelsStats(offset, limit int) ([]models.Channel, int) {
+	channels := []models.Channel{}
+	mostViews := 0
+
+	rows, err := db.Query(`SELECT * FROM channels ORDER BY live_viewers DESC limit ?,?`, offset, limit)
+
+	if err != nil {
+		return channels, mostViews
+	}
+
+	for rows.Next() {
+		var c models.Channel
+		c.Scan(rows)
+		channels = append(channels, c)
+
+		if c.LiveViewers > mostViews {
+			mostViews = c.LiveViewers
+		}
+	}
+
+	return channels, mostViews
 }
 
 func GetClips(offset, limit int) ([]models.Clip, error) {
@@ -430,6 +482,192 @@ func GetChannelsSlug() *chan string {
 	return &ch
 }
 
+func GetOverallViewsStats() (int, string, int, string, int) {
+	row := db.QueryRow(`WITH recent_data AS (
+	SELECT n AS last_30_days_peak, ts AS peak_date
+	FROM overall_viewers_chart
+	WHERE DATE(ts) >= DATE('now', '-30 days')
+	ORDER BY n DESC
+	LIMIT 1
+	),
+	all_time_data AS (
+	SELECT MAX(n) AS all_time_views, ts AS peak_date
+	FROM overall_viewers_chart
+	),
+	last_7_days_avg AS (
+	SELECT AVG(n) AS last_7_days_average
+	FROM overall_viewers_chart
+	WHERE DATE(ts) >= DATE('now', '-7 days')
+	)
+	SELECT
+	recent_data.last_30_days_peak,
+	recent_data.peak_date,
+	all_time_data.all_time_views,
+	all_time_data.peak_date,
+	last_7_days_avg.last_7_days_average
+	FROM
+	recent_data,
+	all_time_data,
+	last_7_days_avg;`)
+
+	var last30DaysPeak int
+	var last30DaysPeakDate string
+	var allTimePeak int
+	var allTimePeakDate string
+	var last7DaysAvg float64
+	row.Scan(&last30DaysPeak, &last30DaysPeakDate, &allTimePeak, &allTimePeakDate, &last7DaysAvg)
+
+	return last30DaysPeak, last30DaysPeakDate, allTimePeak, allTimePeakDate, int(last7DaysAvg)
+}
+
+func GetOverallChannelsStats() (int, string, int, string, int) {
+	row := db.QueryRow(`WITH recent_data AS (
+	SELECT n AS last_30_days_peak, ts AS peak_date
+	FROM overall_live_channels_chart
+	WHERE DATE(ts) >= DATE('now', '-30 days')
+	ORDER BY n DESC
+	LIMIT 1
+	),
+	all_time_data AS (
+	SELECT MAX(n) AS all_time_views, ts AS peak_date
+	FROM overall_live_channels_chart
+	),
+	last_7_days_avg AS (
+	SELECT AVG(n) AS last_7_days_average
+	FROM overall_live_channels_chart
+	WHERE DATE(ts) >= DATE('now', '-7 days')
+	)
+	SELECT
+	recent_data.last_30_days_peak,
+	recent_data.peak_date,
+	all_time_data.all_time_views,
+	all_time_data.peak_date,
+	last_7_days_avg.last_7_days_average
+	FROM
+	recent_data,
+	all_time_data,
+	last_7_days_avg;`)
+
+	var last30DaysPeak int
+	var last30DaysPeakDate string
+	var allTimePeak int
+	var allTimePeakDate string
+	var last7DaysAvg float64
+	row.Scan(&last30DaysPeak, &last30DaysPeakDate, &allTimePeak, &allTimePeakDate, &last7DaysAvg)
+
+	return last30DaysPeak, last30DaysPeakDate, allTimePeak, allTimePeakDate, int(last7DaysAvg)
+}
+
+func GetViewersChartStats(t string) map[string]interface{} {
+	v := ""
+
+	switch t {
+	case "w":
+		v = "strftime('%Y-%W', ts) AS dt"
+	case "m":
+		v = "strftime('%Y-%m', ts) AS dt"
+	case "q":
+		v = "strftime('%Y-Q%q', ts) AS dt"
+	}
+
+	rows, _ := db.Query(fmt.Sprintf(`WITH last AS (
+		SELECT 
+			%s,
+			ts,
+			MAX(n) AS peak_viewers,
+			AVG(n) AS average_viewers
+		FROM 
+			overall_viewers_chart
+		GROUP BY 
+			dt
+		ORDER BY 
+			dt DESC
+		LIMIT 24
+	)
+	SELECT * FROM last ORDER BY dt ASC`, v))
+
+	dates := []string{}
+	peakValues := []int{}
+	avgValues := []int{}
+
+	for rows.Next() {
+		var (
+			d  string
+			ts string
+			pv int
+			av float64
+		)
+		rows.Scan(&d, &ts, &pv, &av)
+		t, _ := time.Parse("2006-01-02 15:04:05", ts)
+		dates = append(dates, t.Format("Mon, Jan 02, 2006")+" UTC")
+		peakValues = append(peakValues, pv)
+		avgValues = append(avgValues, int(av))
+	}
+
+	data := map[string]interface{}{
+		"dates": dates,
+		"peak":  peakValues,
+		"avg":   avgValues,
+	}
+
+	return data
+}
+
+func GetChannelsChartStats(t string) map[string]interface{} {
+	v := ""
+
+	switch t {
+	case "w":
+		v = "strftime('%Y-%W', ts) AS dt"
+	case "m":
+		v = "strftime('%Y-%m', ts) AS dt"
+	case "q":
+		v = "strftime('%Y-Q%q', ts) AS dt"
+	}
+
+	rows, _ := db.Query(fmt.Sprintf(`WITH last AS (
+		SELECT 
+			%s,
+			ts,
+			MAX(n) AS peak_viewers,
+			AVG(n) AS average_viewers
+		FROM 
+			overall_live_channels_chart
+		GROUP BY 
+			dt
+		ORDER BY 
+			dt DESC
+		LIMIT 24
+	)
+	SELECT * FROM last ORDER BY dt ASC`, v))
+
+	dates := []string{}
+	peakValues := []int{}
+	avgValues := []int{}
+
+	for rows.Next() {
+		var (
+			d  string
+			ts string
+			pv int
+			av float64
+		)
+		rows.Scan(&d, &ts, &pv, &av)
+		t, _ := time.Parse("2006-01-02 15:04:05", ts)
+		dates = append(dates, t.Format("Mon, Jan 02, 2006")+" UTC")
+		peakValues = append(peakValues, pv)
+		avgValues = append(avgValues, int(av))
+	}
+
+	data := map[string]interface{}{
+		"dates": dates,
+		"peak":  peakValues,
+		"avg":   avgValues,
+	}
+
+	return data
+}
+
 /*
 func GetMainSuggestions(query string) []models.Sugg {
 	suggestions := []models.Sugg{}
@@ -484,4 +722,24 @@ created_at < strftime('%Y-%m-%dT%H:%M:%SZ', DATETIME('now', '-2 day')) AND creat
 t3 AS (SELECT COUNT(*) AS c, SUM(view_count) AS v, COUNT(DISTINCT broadcaster_name) AS b, COUNT(DISTINCT game_id) AS g FROM clips)
 SELECT t3.c, CAST((t1.c - t2.c) * 100 AS REAL) / t2.c, t3.v, CAST((t1.v - t2.v) * 100 AS REAL) / t2.v, t3.b, CAST((t1.b - t2.b) * 100 AS REAL) / t2.b,
 t3.g, CAST((t1.g - t2.g) * 100 AS REAL) / t2.g FROM t1 JOIN t2 JOIN t3;
+*/
+
+/*
+WITH last_24_weeks AS (
+    SELECT
+        strftime('%Y-%W', ts) AS week,
+		ts,    -- Extract year-week from timestamp
+        MAX(n) AS peak_viewers,            -- Maximum viewers for the week
+        AVG(n) AS average_viewers          -- Average viewers for the week
+    FROM
+        overall_viewers_chart
+    GROUP BY
+        week                              -- Group by week
+    ORDER BY
+        week DESC                        -- Order by week descending
+    LIMIT 24                             -- Limit to the last 24 weeks
+)
+SELECT *
+FROM last_24_weeks
+ORDER BY week ASC;
 */

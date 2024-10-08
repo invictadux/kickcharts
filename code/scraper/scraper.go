@@ -90,8 +90,10 @@ func GetAllCategories() *chan (string) {
 						Name:         category.Name,
 						Slug:         category.Slug,
 						Banner:       category.Banner.URL,
-						PeakChannels: 0,
+						LiveViewers:  category.Viewers,
+						LiveChannels: 0,
 						PeakViewers:  category.Viewers,
+						PeakChannels: 0,
 						Description:  category.Description,
 					}
 
@@ -112,7 +114,7 @@ func GetAllCategories() *chan (string) {
 							"description":   c.Description,
 						}
 
-						db.UpdateCategory(dbCategory.ID, updateParams)
+						db.UpdateCategory(category.Slug, updateParams)
 					}
 
 					db.InsertCategoryViewsChartPoint(category.Slug, category.Viewers)
@@ -176,8 +178,10 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 						Slug:           livestream.Channel.Slug,
 						Banner:         "",
 						Picture:        livestream.Channel.User.Profilepic,
-						Language:       livestream.Language,
 						IsBanned:       livestream.Channel.IsBanned,
+						Language:       livestream.Language,
+						Live:           livestream.IsLive,
+						LiveViewers:    livestream.Viewers,
 						FollowersCount: 0,
 						PeakViewers:    livestream.Viewers,
 						Description:    livestream.Channel.User.Bio,
@@ -202,6 +206,8 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 							"username":        channel.Username,
 							"picture":         channel.Picture,
 							"is_banned":       channel.IsBanned,
+							"live":            true,
+							"live_viewers":    channel.LiveViewers,
 							"followers_count": channel.FollowersCount,
 							"peak_viewers":    channel.PeakViewers,
 							"description":     channel.Description,
@@ -224,6 +230,12 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 			params["page"] = []string{strconv.Itoa(page)}
 
 			if len(data.Data) < 32 {
+				updateParams := map[string]interface{}{
+					"live_channels": totalStreams,
+				}
+
+				db.UpdateCategory(slug, updateParams)
+
 				db.InsertCategoryLiveChannelsChartPoint(slug, totalStreams)
 				break
 			}
