@@ -127,7 +127,7 @@
                                     <tr>
                                         <td>{{Add $i 1}}</td>
                                         <td><a href="/category/{{.Slug}}"><img class="category-img" src="{{.Banner}}"></a></td>
-                                        <td style="text-align: left;"><a href="/category/{{.Slug}}"><h3>{{.Name}}</h3></a></td>
+                                        <td style="text-align: left;"><a href="/category/{{.Slug}}">{{.Name}}</a></td>
                                         <td style="position: relative; text-align: right;">
                                             <div>{{FormatWithCommas .LiveViewers}}</div>
                                             <div class="progress-container"><div class="progress-bar" 
@@ -172,12 +172,12 @@
                                     <tr>
                                         <td>{{Add $i 1}}</td>
                                         <td><a href="/channel/{{.Slug}}"><img class="profile-pic" src="{{.Picture}}"></a></td>
-                                        <td style="text-align: left;"><a href="/channel/{{.Slug}}"><h3>{{.Username}}</h3></a></td>
+                                        <td style="text-align: left;"><a href="/channel/{{.Slug}}">{{.Username}}</a></td>
                                         <td>{{.Language}}</td>
                                         <td style="position: relative; text-align: right;">
-                                            <div>{{.PeakViewers}}</div>
+                                            <div>{{.LiveViewers}}</div>
                                             <div class="progress-container">
-                                                <div class="progress-bar" style="background-color: #35da3a; width: {{CalculatePercent $.MostChannelViews .PeakViewers}}%;"></div>
+                                                <div class="progress-bar" style="background-color: #35da3a; width: {{CalculatePercent $.MostChannelViews .LiveViewers}}%;"></div>
                                             </div>
                                         </td>
                                     </tr>
@@ -254,7 +254,9 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Img</th>
+                                    <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                        <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                    </svg></th>
                                     <th style="text-align: left;">Title</th>
                                     <th>Views</th>
                                     <th>Duration</th>
@@ -267,12 +269,7 @@
                                     <td>{{Add $i 1}}</td>
                                     <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
                                     <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
-                                    <td style="position: relative; text-align: right;">
-                                        <div>{{FormatWithCommas .Views}}</div>
-                                        <div class="progress-container"><div class="progress-bar" 
-                                            style="background-color: #35da3a; width: {{CalculatePercent $.MostClipViews .Views}}%;"></div>
-                                        </div>
-                                    </td>
+                                    <td>{{FormatWithCommas .Views}}</td>
                                     <td>{{.Duration}}s</td>
                                     <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
                                 </tr>

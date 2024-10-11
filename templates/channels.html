@@ -19,30 +19,85 @@
         {{template "nav"}}
 
         <main>
-            <div class="card">
-                <div id="channels" class="channels">
-                    {{range $channel := .Channels}}
-                    <div class="channel">
-                        <a href="/channel/{{.Slug}}"><img src="{{.Picture}}"></a>
-                        <a href="/channel/{{.Slug}}"><h3>{{.Username}}</h3></a>
-                        <p>{{.PeakViewers}} peak viewers</p>
+            <div class="flex-v-0" style="align-items: start;">
+                <div class="flex-h-0">
+                    <div class="b">{{template "camera"}}</div>
+                    <h2>Most popular channels</h2>
+                    <div style="position: absolute; right: 0;">
+                        <div id="sort-select" class="custom-select-wrapper" style="width: 200px;">
+                            <div class="custom-select">
+                                <div class="custom-select__trigger">
+                                    <div class="header">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M2 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
+                                        </svg>
+                                        <span>Live Viewers</span>
+                                    </div>
+                                    <div class="arrow"></div>
+                                </div>
+                                <div class="custom-options">
+                                    <span class='custom-option {{if eq .Pagination.Sort "lv"}}selected{{end}}' data-value="lv">Live Viewers</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "pv"}}selected{{end}}' data-value="pv">Peak Viewers</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "f"}}selected{{end}}' data-value="f">Followers</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {{end}}
+                </div>
+                <div class="table-0">
+                    <table class="table1">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                    <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                  </svg></th>
+                                <th style="text-align: left;">Name</th>
+                                <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.58 10.046 6.886 8.373l.02-.02A11.68 11.68 0 0 0 9.38 4h1.953V2.666H6.666V1.333H5.333v1.333H.667v1.327h7.446A10.475 10.475 0 0 1 6 7.566a10.43 10.43 0 0 1-1.54-2.233H3.127a11.708 11.708 0 0 0 1.986 3.04L1.72 11.72l.947.946L6 9.333l2.073 2.073.507-1.36zm3.753-3.38H11l-3 8h1.333l.747-2h3.166l.754 2h1.333l-3-8zm-1.747 4.667 1.08-2.887 1.08 2.887h-2.16z" clip-rule="evenodd"></path></svg></th>
+                                <th>Live Viewers</th>
+                                <th>Peak Viewers</th>
+                                <th>Followers</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $i, $channel := .Channels}}
+                            <tr>
+                                <td>{{Add $.Offset $i}}</td>
+                                <td><a href="/channel/{{.Slug}}"><img class="profile-pic" src="{{.Picture}}"></a></td>
+                                <td style="text-align: left;"><a href="/channel/{{.Slug}}">{{.Username}}</a></td>
+                                <td>{{.Language}}</td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .LiveViewers}}</div>
+                                    <div class="progress-container">
+                                        <div class="progress-bar" style="background-color: #35da3a; width: {{CalculatePercent $.MostChannelViewers .LiveViewers}}%;"></div>
+                                    </div>
+                                </td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .PeakViewers}}</div>
+                                    <div class="progress-container">
+                                        <div class="progress-bar" style="background-color: #35da3a; width: {{CalculatePercent $.PeakChannelViewers .PeakViewers}}%;"></div>
+                                    </div>
+                                </td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .FollowersCount}}</div>
+                                    <div class="progress-container">
+                                        <div class="progress-bar" style="background-color: #ffc400; width: {{CalculatePercent $.MostChannelFollowers .FollowersCount}}%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+            {{template "pagination" .Pagination}}
         </main>
 
+        <script>
+            document.getElementById('sort-select').addEventListener('selectChange', function(e) {
+                SelectSortAction(this);
+            });
+        </script>
         {{template "footer"}}
     </body>
-
-    <script type="text/javascript">
-        let canLoad = true;
-        let page = {page: 3, canLoad:true };
-
-        window.onscroll = function(ev) {
-            if ((window.innerHeight + window.scrollY + 200) >= document.body.offsetHeight && page.canLoad) {
-                GetChannels(page);
-            }
-        };
-    </script>
 </html>

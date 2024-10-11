@@ -12,6 +12,8 @@ import (
 	"invictadux/code/models"
 )
 
+var maxChannelViewerCount = 5
+
 func GetAllLivestreams() *chan (string) {
 	params := url.Values{
 		"page":  []string{"1"},
@@ -36,7 +38,7 @@ func GetAllLivestreams() *chan (string) {
 			fmt.Printf("Page: %v, len: %v\n", params["page"], len(data.Data))
 
 			for _, stream := range data.Data {
-				if stream.ViewerCount >= 10 {
+				if stream.ViewerCount >= maxChannelViewerCount {
 					channels <- stream.Channel.Slug
 				} else {
 					run = false
@@ -109,6 +111,7 @@ func GetAllCategories() *chan (string) {
 						updateParams := map[string]interface{}{
 							"name":          c.Name,
 							"banner":        c.Banner,
+							"live_viewers":  c.LiveViewers,
 							"peak_channels": c.PeakChannels,
 							"peak_viewers":  c.PeakViewers,
 							"description":   c.Description,
@@ -172,7 +175,7 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 			}
 
 			for _, livestream := range data.Data {
-				if livestream.Viewers > 0 {
+				if livestream.Viewers > maxChannelViewerCount {
 					channel := models.Channel{
 						Username:       livestream.Channel.User.Username,
 						Slug:           livestream.Channel.Slug,
@@ -203,20 +206,19 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 						}
 
 						updateParams := map[string]interface{}{
-							"username":        channel.Username,
-							"picture":         channel.Picture,
-							"is_banned":       channel.IsBanned,
-							"live":            true,
-							"live_viewers":    channel.LiveViewers,
-							"followers_count": channel.FollowersCount,
-							"peak_viewers":    channel.PeakViewers,
-							"description":     channel.Description,
-							"discord":         channel.Discord,
-							"facebook":        channel.Facebook,
-							"instagram":       channel.Instagram,
-							"tiktok":          channel.Tiktok,
-							"twitter":         channel.Twitter,
-							"youtube":         channel.Youtube,
+							"username":     channel.Username,
+							"picture":      channel.Picture,
+							"is_banned":    channel.IsBanned,
+							"live":         channel.Live,
+							"live_viewers": channel.LiveViewers,
+							"peak_viewers": channel.PeakViewers,
+							"description":  channel.Description,
+							"discord":      channel.Discord,
+							"facebook":     channel.Facebook,
+							"instagram":    channel.Instagram,
+							"tiktok":       channel.Tiktok,
+							"twitter":      channel.Twitter,
+							"youtube":      channel.Youtube,
 						}
 
 						db.UpdateChannel(dbChannel.ID, updateParams)
@@ -230,8 +232,16 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 			params["page"] = []string{strconv.Itoa(page)}
 
 			if len(data.Data) < 32 {
+				peakChannels := totalStreams
+				cat, _ := db.GetCategory(slug)
+
+				if cat.PeakChannels > peakChannels {
+					peakChannels = cat.PeakChannels
+				}
+
 				updateParams := map[string]interface{}{
 					"live_channels": totalStreams,
+					"peak_channels": peakChannels,
 				}
 
 				db.UpdateCategory(slug, updateParams)
@@ -368,8 +378,10 @@ func GetAllClips() {
 				if clip.ViewCount >= 100 {
 					c := models.Clip{
 						ID:           clip.ID,
-						Category:     clip.Category.Name,
-						Channel:      clip.Channel.Username,
+						CategoryName: clip.Category.Name,
+						CategorySlug: clip.Category.Slug,
+						ChannelName:  clip.Channel.Username,
+						ChannelSlug:  clip.Channel.Slug,
 						IsMature:     clip.IsMature,
 						Title:        clip.Title,
 						URL:          clip.ClipURL,
@@ -395,6 +407,8 @@ func GetAllClips() {
 }
 
 func Run() {
+	offset, limit := 0, 2000
+
 	for {
 		now := time.Now().UTC()
 
@@ -406,8 +420,14 @@ func Run() {
 			categories := GetAllCategories()
 			GetAllCategoriesLivestreams(categories)
 			GetAllClips()
-			chSlug := db.GetChannelsSlug()
+
+			if now.Hour() == 0 {
+				offset = 0
+			}
+
+			chSlug := db.GetChannelsSlug(offset, limit)
 			GetChannelsData(chSlug, 5)
+			offset += limit
 			fmt.Println("Elapsed time:", time.Since(start))
 		}
 

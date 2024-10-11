@@ -1,52 +1,3 @@
-
-function GetChannels(page) {
-    page.canLoad = false;
-
-	var http = new XMLHttpRequest();
-	var url = new URL(window.location.origin + "/api/v1/channels");
-
-	url.searchParams.set("page", page['page']);
-
-	http.onreadystatechange = function() {
-	    if (this.readyState == 4 && this.status == 200) {
-	        var data = JSON.parse(this.responseText);
-			RenderChannels("channels", data);
-            
-            if (data.length == 30) {
-                page.page += 1;
-                page.canLoad = true;
-            }
-	    }
-	};
-
-	http.open("GET", url, true);
-	http.send();
-}
-
-function GetClips(page) {
-    page.canLoad = false;
-
-	var http = new XMLHttpRequest();
-	var url = new URL(window.location.origin + "/api/v1/clips");
-
-	url.searchParams.set("page", page['page']);
-
-	http.onreadystatechange = function() {
-	    if (this.readyState == 4 && this.status == 200) {
-	        var data = JSON.parse(this.responseText);
-			RenderClips("clips", data);
-            
-            if (data.length == 30) {
-                page.page += 1;
-                page.canLoad = true;
-            }
-	    }
-	};
-
-	http.open("GET", url, true);
-	http.send();
-}
-
 async function FetchChartStats(s, t) {
     const url = new URL(window.location.origin + "/api/v1/chart/stats");
     url.searchParams.set("s", s);
@@ -66,6 +17,13 @@ async function FetchChartStats(s, t) {
         console.error('Error occurred while fetching chart stats:', error);
 		return null;
     }
+}
+
+function SelectSortAction(s) {
+	const url = new URL(window.location.href);
+	url.searchParams.delete('page');
+	url.searchParams.set('sort', s.dataset.value);
+	window.location.href = url.toString();
 }
 
 function PlayClip(src) {
@@ -96,76 +54,89 @@ function CloseClip() {
 	oldplayer.remove();
 }
 
-function GetCategories(page) {
-    page.canLoad = false;
-
-	var http = new XMLHttpRequest();
-	var url = new URL(window.location.origin + "/api/v1/categories");
-
-	url.searchParams.set("page", page['page']);
-
-	http.onreadystatechange = function() {
-	    if (this.readyState == 4 && this.status == 200) {
-	        var data = JSON.parse(this.responseText);
-			RenderCategories("categories", data);
-            
-            if (data.length == 30) {
-                page.page += 1;
-                page.canLoad = true;
-            }
-	    }
+function GenerateBarChartOptions(dates, values, title, color) {
+	var option = {
+		backgroundColor: '#1c1c22',
+		title: [
+			{
+				text: title,
+				left: 'left',
+				top: 'top',
+				textStyle: {
+					fontFamily: 'Karla',
+					fontSize: 12,
+					fontWeight: '400',
+					color: '#dedede',
+				}
+			},
+			{
+				text: 0,
+				right: 'right',
+				top: 'top',
+				textStyle: {
+					fontFamily: 'Karla',
+					fontSize: 13,
+					fontWeight: '400',
+					color: '#dedede',
+				}
+			},
+		],
+		tooltip: {
+			trigger: 'axis',
+			backgroundColor: 'ffffff00',
+			borderWidth: 0,
+			textStyle: {
+				color: '#ffffff',
+				fontSize: 14
+			},
+			axisPointer: {
+				type: 'shadow'
+			},
+			formatter: function(params) {
+				option.title[1].text = params[0].value.toLocaleString();
+				return `${params[0].name}: ${params[0].value.toLocaleString()}`;
+			},
+			position: function (point, params, dom, rect, size) {
+				return [size.viewSize[0] - size.contentSize[0], 0];
+			}
+		},
+		grid: {
+			left: '1%',
+			right: '1%',
+			top: '20%',
+			bottom: '0%',
+			containLabel: true,
+		},
+		xAxis: {
+			type: 'category',
+			data: dates,
+			axisLabel: { show: false },
+			axisLine: { show: false },
+			axisTick: { show: false }, 
+		},
+		yAxis: {
+			type: 'value',
+			splitLine: {
+				show: false,
+			},
+			axisLabel: { show: false },
+			axisLine: { show: false },
+			axisTick: { show: false }, 
+		},
+		series: [
+			{
+				name: 'Direct',
+				data: values,
+				type: 'bar',
+				barWidth: '90%',
+				itemStyle: {
+                    color: color,
+                }
+			}
+		]
 	};
 
-	http.open("GET", url, true);
-	http.send();
-}
-
-function RenderChannels(target, data) {
-	var container = document.getElementById(target);
-
-	for (const channel of data) {
-		container.innerHTML += `
-        <div class="channel">
-            <a href="/channel/${channel['slug']}"><img src="${channel['picture']}"></a>
-            <a href="/channel/${channel['slug']}"><h3>${channel['username']}</h3></a>
-            <p>${channel['peak_viewers']} peak viewers</p>
-        </div>`;
-	}
-}
-
-function RenderCategories(target, data) {
-	var container = document.getElementById(target);
-
-	for (const category of data) {
-		container.innerHTML += `
-        <div class="category">
-            <a href="/category/${category['slug']}"><img src="${category['banner']}"></a>
-            <a href="/category/${category['slug']}"><h3>${category['name']}</h3></a>
-            <p>${category['peak_viewers']} peak viewers</p>
-        </div>`;
-	}
-}
-
-function RenderClips(target, data) {
-	var container = document.getElementById(target);
-
-	for (const channel of data) {
-		container.innerHTML += `
-		<clip>
-			<div class="img-container" onclick="PlayClip('${channel['url']}')">
-				<img src="${channel['thumbnail']}" alt="${channel['title']}" loading="lazy">
-				<div class="duration">${channel['duration']}s</div>
-				<div class="view-count">${channel['views']} views</div>
-				<div class="created-date">${channel['created_at']}</div>
-			</div>
-			<div class="clip-content">
-			<data>
-				<h3>${channel['title']}</h3>
-				<a href="/channel/${channel['channel']}">${channel['channel']}</a><a href="/category/${channel['category']}">${channel['category']}</a>
-			</data>
-			</div>
-		</clip>`;
-	}
+	return option;
 }
 
 for (const dropdown of document.querySelectorAll(".custom-select-wrapper")) {

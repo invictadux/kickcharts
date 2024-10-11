@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{{.Category.Name}} Page</title>
+        <title>{{.Category.Name}} - Kick Statistics and Analytics</title>
         <meta charset="utf-8">
         <title>Index Page</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,30 +26,133 @@
         {{template "nav"}}
 
         <main>
-            <div class="card flex-1">
-                <img class="board-img" src="{{.Category.Banner}}">
-                <div class="board-data">
-                    <h2 class="board-name">{{.Category.Name}}</h2>
-                    <p>Peak Viewers: {{.Category.PeakViewers}}</p>
-                    <p>Peak Channels: {{.Category.PeakChannels}}</p>
+            <div class="category">
+                <img src="{{.Category.Banner}}">
+                <div class="flex-v-0" style="align-items: start;">
+                    <h2>{{.Category.Name}}</h2>
                     <p>{{.Category.Description}}</p>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="clips" id="clips">
-                    {{range $clip := .Clips}}
-                       {{template "clip" $clip}}
-                    {{end}}
-              </div>
+            <div class="stats-card">
+                <div class="oks">
+                    <div class="flex-v-0" style="align-items: start;">
+                        <div class="flex-h-0">
+                            <div class="b">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+                                </svg>
+                            </div>
+                            <h2>Live Viewers</h2>
+                        </div>
+                        <div class="skeleton" style="grid-template-columns: 1fr 1fr 1fr; width: 100%;">
+                            <div class="box1">
+                                <h4>Last 7 days peak:</h4>
+                                <p class="views">{{FormatWithCommas .Views.Last7DaysPeak}}</p>
+                                <p class="time">{{FormatStringDate .Views.Last7DaysPeakDate "Jan 02, 2006 15:04"}}</p>
+                            </div>
+                            <div class="box2">
+                                <h4>Last 30 days peak:</h4>
+                                <p class="views">{{FormatWithCommas .Views.Last30DaysPeak}}</p>
+                                <p class="time">{{FormatStringDate .Views.Last30DaysPeakDate "Jan 02, 2006 15:04"}}</p>
+                            </div>
+                            <div class="box3">
+                                <h4>All time peak</h4>
+                                <p class="views">{{FormatWithCommas .Views.AllTimePeak}}</p>
+                                <p class="time">{{FormatStringDate .Views.AllTimePeakDate "Jan 02, 2006 15:04"}}</p>
+                            </div>
+                            <div class="box4">
+                                <div id="chart-views" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-v-0" style="align-items: start;">
+                        <div class="flex-h-0">
+                            <div class="b">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+                                </svg>
+                            </div>
+                            <h2>Live Channels</h2>
+                        </div>
+                        <div class="skeleton" style="grid-template-columns: 1fr 1fr 1fr; width: 100%;">
+                            <div class="box1">
+                                <h4>Last 7 days peak:</h4>
+                                <p class="views">{{FormatWithCommas .Channels.Last7DaysPeak}}</p>
+                                <p class="time">{{FormatStringDate .Channels.Last7DaysPeakDate "Jan 02, 2006 15:04"}}</p>
+                            </div>
+                            <div class="box2">
+                                <h4>Last 30 days peak:</h4>
+                                <p class="views">{{FormatWithCommas .Channels.Last30DaysPeak}}</p>
+                                <p class="time">{{FormatStringDate .Channels.Last30DaysPeakDate "Jan 02, 2006 15:04"}}</p>
+                            </div>
+                            <div class="box3">
+                                <h4>All time peak</h4>
+                                <p class="views">{{FormatWithCommas .Channels.AllTimePeak}}</p>
+                                <p class="time">{{FormatStringDate .Channels.AllTimePeakDate "Jan 02, 2006 15:04"}}</p>
+                            </div>
+                            <div class="box4">
+                                <div id="chart-channels" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="card">
-                <div id="chart-channels" class="chart"></div>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                          </svg>
+                    </div>
+                    <h2>Latest Clips</h2>
+                </div>
+                <div>
+                    <div class="table-0">
+                        <table class="table1">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                        <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                    </svg></th>
+                                    <th style="text-align: left;">Title</th>
+                                    <th>Views</th>
+                                    <th>Duration</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $i, $clip := .Clips}}
+                                <tr>
+                                    <td>{{Add $i 1}}</td>
+                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
+                                    <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
+                                    <td>{{FormatWithCommas .Views}}</td>
+                                    <td>{{.Duration}}s</td>
+                                    <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                        <a class="full-list-btn" href="/clips?category={{.Slug}}">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                          </svg></a>
+                    </div>
+                </div>
             </div>
 
-            <div class="card">
-                <div id="chart-views" class="chart"></div>
+            <div class="flex-v-0" style="align-items: start;">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+                        </svg>
+                    </div>
+                    <h2>{{.Category.Name}} growth charts on Kick</h2>
+                </div>
+                <div class="card" id="growth-chart" style="width: 100%; height: 300px;"></div>
             </div>
         </main>
 
@@ -61,51 +164,151 @@
             const views_dates = {{.ViewsChart.Dates}};
             const views_values = {{.ViewsChart.Values}};
 
-            var chart1 = echarts.init(document.getElementById('chart-channels'), 'light', {
+            const growth_dates = {{.Growth.Dates}};
+            const growth_peak_viewers = {{.Growth.PeakViewers}};
+            const growth_average_viewers = {{.Growth.AverageViewers}};
+            const growth_peak_channels = {{.Growth.PeakChannels}};
+            const growth_average_channels = {{.Growth.AverageChannels}};
+
+            var chart1 = echarts.init(document.getElementById('chart-views'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
             });
 
-            var chart2 = echarts.init(document.getElementById('chart-views'), 'light', {
+            var chart2 = echarts.init(document.getElementById('chart-channels'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var chart3 = echarts.init(document.getElementById('growth-chart'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
             });
 
             var option1 = {
-                backgroundColor: '#1c1d1f',
-                title: {
-                    text: 'Channels',
-                    left: 'center',
-                    top: '1%',
-                    textStyle: {
-                        fontFamily: 'karla',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#dedede',
-                    }
-                },
+                backgroundColor: '#1c1c22',
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
+                                    <span style="color:${item.color};">Viewers: </span>
+                                    <span>${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {
+                            show: true,
+                            title: 'Save Image',
+                            name: 'kickcharts_overall_views',
+                            type: 'png',
+                            pixelRatio: 2,
+                            excludeComponents: ['toolbox']
+                        }
                     }
                 },
                 grid: {
-                    left: '3%',
-                    right: '3%',
+                    left: '0%',
+                    right: '0%',
                     top: '15%',
-                    bottom: '7%',
+                    bottom: '0%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: views_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
+                },
+                series: [
+                {
+                    data: views_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#35da3a'
+                    },
+                    areaStyle: {
+                        color: '#35da3a',
+                        opacity: 0.5
+                    },
+                }]
+            };
+
+            var option2 = {
+                backgroundColor: '#1c1c22',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
+                                    <span style="color:${item.color};">Channels: </span>
+                                    <span>${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                grid: {
+                    left: '0%',
+                    right: '0%',
+                    top: '15%',
+                    bottom: '0%',
                     containLabel: true
                 },
                 toolbox: {
                     feature: {
-                        dataZoom: {
-                            yAxisIndex: false
-                        },
                         saveAsImage: {
                             show: true,
                             title: 'Save Image',
-                            name: 'channels',
+                            name: 'kickcharts_overall_channels',
                             type: 'png',
                             pixelRatio: 2,
                             excludeComponents: ['toolbox']
@@ -115,68 +318,87 @@
                 xAxis: {
                     type: 'category',
                     data: channels_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 yAxis: {
                     type: 'value',
-					splitLine: {
-						show: true,
-						lineStyle: {
-							color: '#303030',
-							type: 'dashed'
-						}
-					}
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 series: [
                 {
-                        data: channels_values,
-                        type: 'line',
-                        smooth: true,
-                        itemStyle: {
-                            color: '#3b85ff'
-                        },
-                        areaStyle: {
-                            color: '#3b85ff',
-                            opacity: 0.3
-                        },
-                    }
-                ]
+                    data: channels_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#9f0bff'
+                    },
+                    areaStyle: {
+                        color: '#9f0bff',
+                        opacity: 0.5
+                    },
+                }]
             };
 
-            var option2 = {
-                backgroundColor: '#1c1d1f',
-                title: {
-                    text: 'Views',
-                    left: 'center',
-                    top: '1%',
+            var option3 = {
+                backgroundColor: '#1c1c22',
+                legend: {
+                    data: ['Peak Viewers', 'Average Viewers','Peak Channels', 'Average Channels'],
                     textStyle: {
+                        fontSize: 11,
                         fontFamily: 'karla',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#dedede',
-                    }
+                        color: '#b2b2b2'
+                    },
                 },
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; align-items: center; padding: .25em 1em; font-size:.9em;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${item.color}; margin-right: 5px;"></span>
+                                    <span>${item.seriesName}: ${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
                     }
                 },
                 grid: {
-                    left: '3%',
-                    right: '3%',
-                    top: '15%',
-                    bottom: '7%',
+                    left: '0%',
+                    right: '0%',
+                    top: '25%',
+                    bottom: '0%',
                     containLabel: true
                 },
                 toolbox: {
                     feature: {
-                        dataZoom: {
-                            yAxisIndex: false
-                        },
                         saveAsImage: {
                             show: true,
                             title: 'Save Image',
-                            name: 'views',
+                            name: '{{.Category.Name}}_growth_chart',
                             type: 'png',
                             pixelRatio: 2,
                             excludeComponents: ['toolbox']
@@ -185,29 +407,87 @@
                 },
                 xAxis: {
                     type: 'category',
-                    data: views_dates,
+                    data: growth_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 yAxis: {
                     type: 'value',
-					splitLine: {
-						show: true,
-						lineStyle: {
-							color: '#303030',
-							type: 'dashed'
-						}
-					}
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 series: [
                     {
-                        data: views_values,
+                        name: "Peak Viewers",
+                        data: growth_peak_viewers,
                         type: 'line',
                         smooth: true,
+                        symbol: 'circle',
+                        lineStyle: {
+                            width: 1
+                        },
                         itemStyle: {
-                            color: '#3b85ff'
+                            color: '#00ff61'
                         },
                         areaStyle: {
-                            color: '#3b85ff',
-                            opacity: 0.3
+                            color: '#00ff61',
+                            opacity: 0.1
+                        },
+                    },
+                    {
+                        name: "Average Viewers",
+                        data: growth_average_viewers,
+                        type: 'line',
+                        smooth: true,
+                        symbol: 'circle',
+                        lineStyle: {
+                            width: 1
+                        },
+                        itemStyle: {
+                            color: '#d8ff00'
+                        },
+                        areaStyle: {
+                            color: '#d8ff00',
+                            opacity: 0.1
+                        },
+                    },
+                    {
+                        name: "Peak Channels",
+                        data: growth_peak_channels,
+                        type: 'line',
+                        smooth: true,
+                        symbol: 'circle',
+                        lineStyle: {
+                            width: 1
+                        },
+                        itemStyle: {
+                            color: '#ffa718'
+                        },
+                        areaStyle: {
+                            color: '#ffa718',
+                            opacity: 0.1
+                        },
+                    },
+                    {
+                        name: "Average Channels",
+                        data: growth_average_channels,
+                        type: 'line',
+                        smooth: true,
+                        symbol: 'circle',
+                        lineStyle: {
+                            width: 1
+                        },
+                        itemStyle: {
+                            color: '#ff1838'
+                        },
+                        areaStyle: {
+                            color: '#ff1838',
+                            opacity: 0.1
                         },
                     }
                 ]
@@ -215,6 +495,17 @@
 
             chart1.setOption(option1);
             chart2.setOption(option2);
+            chart3.setOption(option3);
+
+            chart1.group = 'group1';
+            chart2.group = 'group1';
+            echarts.connect('group1');
+
+            window.addEventListener('resize', function() {
+                chart1.resize();
+                chart2.resize();
+                chart3.resize();
+            });
         </script>
     </body>
 </html>

@@ -39,8 +39,10 @@ CREATE INDEX categories_idx_2 ON categories(peak_channels);
 
 CREATE TABLE IF NOT EXISTS clips(
     id TEXT NOT NULL UNIQUE,
-    category TEXT NOT NULL,
-    channel TEXT NOT NULL,
+    category_name TEXT NOT NULL,
+    category_slug TEXT NOT NULL,
+    channel_name TEXT NOT NULL,
+    channel_slug TEXT NOT NULL,
     is_mature BOOLEAN NOT NULL,
     title TEXT NOT NULL,
     url TEXT NOT NULL,

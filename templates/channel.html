@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{{.Channel.Username}} Channel Page</title>
+        <title>{{.Channel.Username}}- Kick Stats, Analytics and Channel Overview</title>
         <meta charset="utf-8">
-        <title>Index Page</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#ffffff">
 
@@ -11,7 +10,7 @@
         <link rel="stylesheet" href="/static/css/main.css">
 
         <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
-        <script type="text/javascript" src="/static/js/main.js" defer></script>
+        <script type="text/javascript" src="/static/js/main.js"></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,14 +25,11 @@
         {{template "nav"}}
 
         <main>
-            <div class="card flex-1">
-                <img class="board-img" src="{{.Channel.Picture}}">
-                <div class="board-data">
-                    <h2 class="board-name">{{.Channel.Username}}</h2>
-                    <p>Followers: {{.Channel.FollowersCount}}</p>
-                    <p>Peak Viewers: {{.Channel.PeakViewers}}</p>
+            <div class="channel">
+                <img src="{{.Channel.Picture}}">
+                <div class="flex-v-0" style="align-items: start;">
+                    <h2>{{.Channel.Username}}</h2>
                     <p>{{.Channel.Description}}</p>
-                    
                     <div class="channel-contacts">
                         {{if ne .Channel.Discord ""}}<a href="https://discord.com/invite/{{.Channel.Discord}}" target="_blank">{{template "discord-svg"}}</a>{{end}}
                         {{if ne .Channel.Facebook ""}}<a href="https://www.facebook.com/{{.Channel.Facebook}}" target="_blank">{{template "facebook-svg"}}</a>{{end}}
@@ -45,103 +41,291 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="clips" id="clips">
-                    {{range $clip := .Clips}}
-                       {{template "clip" $clip}}
-                    {{end}}
-              </div>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path d="M11.333 6.133L14.81 3.7a.333.333 0 0 1 .524.273v8.054a.333.333 0 0 1-.524.273l-3.476-2.433v2.8a.667.667 0 0 1-.667.666H1.333a.667.667 0 0 1-.666-.666V3.333a.667.667 0 0 1 .666-.666h9.334a.667.667 0 0 1 .666.666v2.8zm-8-.8v1.334h1.333V5.333H3.333z"></path>
+                        </svg>
+                    </div>
+                    <h2>{{.Channel.Username}} stats</h2>
+                </div>
+                <div class="channel-charts">
+                    <div id="hours-watched-chart" style="height: 100px; border-right: 1px solid #34343a;"></div>
+                    <div id="peak-viewers-chart" style="height: 100px; border-right: 1px solid #34343a;"></div>
+                    <div id="avg-viewers-chart" style="height: 100px; border-right: 1px solid #34343a;"></div>
+                    <div id="followers-gain-chart" style="height: 100px; border-right: 1px solid #34343a;"></div>
+                    <div id="air-time-chart" style="height: 100px;"></div>
+                </div>
             </div>
 
-            <div class="card">
-                <div id="chart-followers" class="chart"></div>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                          </svg>
+                    </div>
+                    <h2>Latest Clips</h2>
+                </div>
+                <div>
+                    <div class="table-0">
+                        <table class="table1">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                        <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                    </svg></th>
+                                    <th style="text-align: left;">Title</th>
+                                    <th>Views</th>
+                                    <th>Duration</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $i, $clip := .Clips}}
+                                <tr>
+                                    <td>{{Add $i 1}}</td>
+                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
+                                    <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
+                                    <td>{{FormatWithCommas .Views}}</td>
+                                    <td>{{.Duration}}s</td>
+                                    <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                        <a class="full-list-btn" href="/clips?channel={{.Channel.Slug}}">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                          </svg></a>
+                    </div>
+                </div>
             </div>
 
-            <div class="card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Date</th>
-                            <th scope="col">Followers Gain</th>
-                            <th scope="col">Followers</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $row := .FollowersTable}}
-                        <tr>
-                            <td>{{.Date}}</td>
-                            {{if gt .V1 0}}
-                            <td class="g">+{{.V1}}</td>
-                            {{else if lt .V1 0}}
-                            <td class="r">{{.V1}}</td>
-                            {{else}}
-                            <td>{{.V1}}</td>
-                            {{end}}
-                            <td>{{.V2}}</td>
-                        </tr>
-                        {{end}}
-                    </tbody>
-                  </table>
+            <div class="flex-h-0">
+                <div class="flex-v-0">
+                    <div class="flex-h-0">
+                        <div class="b">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
+                            </svg>
+                        </div>
+                        <h2>Viewers</h2>
+                    </div>
+                    <div class="card" id="viewers-chart" style="width: 100%; height: 300px;"></div>
+                </div>
+
+                <div class="flex-v-0">
+                    <div class="flex-h-0">
+                        <div class="b">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M9 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h10s1 0 1-1-1-4-6-4-6 3-6 4m13.5-8.09c1.387-1.425 4.855 1.07 0 4.277-4.854-3.207-1.387-5.702 0-4.276Z"/>
+                            </svg>
+                        </div>
+                        <h2>Followers</h2>
+                    </div>
+                    <div class="card" id="followers-chart" style="width: 100%; height: 300px;"></div>
+                </div>
             </div>
 
-            <div class="card">
-                <div id="chart-views" class="chart"></div>
+            <div class="flex-v-0" style="align-items: start;">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path d="M3.333 8.72V2H2v12h12v-1.333H3.333V10.6l2.66-2.659 2.666 2.667L12.473 6.8 14 8.328v-4h-4l1.527 1.527-2.868 2.867-2.666-2.667-2.66 2.664z"></path>
+                        </svg>
+                    </div>
+                    <h2>{{.Channel.Username}} growth charts on Kick</h2>
+                </div>
+                <div class="card" id="growth-chart" style="width: 100%; height: 300px;"></div>
             </div>
         </main>
 
         {{template "footer"}}
 
         <script type="text/javascript">
+            const chartDates = {{.Charts.Dates}};
+            const hoursWatched = {{.Charts.HoursWatched}};
+            const peakViewers = {{.Charts.PeakViewers}};
+            const avgViewers = {{.Charts.AverageViewers}};
+            const followersGain = {{.Charts.FollowersGain}};
+            const airTime = {{.Charts.AirTime}};
+
+            const viewers_dates = {{.ViewsChart.Dates}};
+            const viewers_values = {{.ViewsChart.Values}};
             const followers_dates = {{.FollowersChart.Dates}};
             const followers_values = {{.FollowersChart.Values}};
-            const views_dates = {{.ViewsChart.Dates}};
-            const views_values = {{.ViewsChart.Values}};
 
-            var chart1 = echarts.init(document.getElementById('chart-followers'), 'light', {
+            const growth_dates = {{.Growth.Dates}};
+            const growth_peak_viewers = {{.Growth.PeakViewers}};
+            const growth_average_viewers = {{.Growth.AverageViewers}};
+
+           var chart1 = echarts.init(document.getElementById('hours-watched-chart'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
             });
 
-            var chart2 = echarts.init(document.getElementById('chart-views'), 'light', {
+            var chart2 = echarts.init(document.getElementById('peak-viewers-chart'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
             });
 
-            var option1 = {
-                backgroundColor: '#1c1d1f',
-                title: {
-                    text: 'Followers',
-                    left: 'center',
-                    top: '1%',
-                    textStyle: {
-                        fontFamily: 'karla',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#dedede',
-                    }
-                },
+            var chart3 = echarts.init(document.getElementById('avg-viewers-chart'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var chart4 = echarts.init(document.getElementById('followers-gain-chart'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var chart5 = echarts.init(document.getElementById('air-time-chart'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var chart6 = echarts.init(document.getElementById('viewers-chart'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var chart7 = echarts.init(document.getElementById('followers-chart'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var chart8 = echarts.init(document.getElementById('growth-chart'), 'light', {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+
+            var option6 = {
+                backgroundColor: '#1c1c22',
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
+                                    <span style="color:${item.color};">Viewers: </span>
+                                    <span>${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {
+                            show: true,
+                            title: 'Save Image',
+                            name: 'kickcharts_overall_views',
+                            type: 'png',
+                            pixelRatio: 2,
+                            excludeComponents: ['toolbox']
+                        }
                     }
                 },
                 grid: {
-                    left: '3%',
-                    right: '3%',
+                    left: '0%',
+                    right: '0%',
                     top: '15%',
-                    bottom: '7%',
+                    bottom: '0%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: viewers_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
+                },
+                series: [
+                {
+                    data: viewers_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#35da3a'
+                    },
+                    areaStyle: {
+                        color: '#35da3a',
+                        opacity: 0.5
+                    },
+                }]
+            };
+
+            var option7 = {
+                backgroundColor: '#1c1c22',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
+                                    <span style="color:${item.color};">Channels: </span>
+                                    <span>${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                grid: {
+                    left: '0%',
+                    right: '0%',
+                    top: '15%',
+                    bottom: '0%',
                     containLabel: true
                 },
                 toolbox: {
                     feature: {
-                        dataZoom: {
-                            yAxisIndex: false
-                        },
                         saveAsImage: {
                             show: true,
                             title: 'Save Image',
-                            name: 'followers',
+                            name: 'kickcharts_overall_channels',
                             type: 'png',
                             pixelRatio: 2,
                             excludeComponents: ['toolbox']
@@ -151,68 +335,87 @@
                 xAxis: {
                     type: 'category',
                     data: followers_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 yAxis: {
                     type: 'value',
-					splitLine: {
-						show: true,
-						lineStyle: {
-							color: '#303030',
-							type: 'dashed'
-						}
-					}
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 series: [
                 {
-                        data: followers_values,
-                        type: 'line',
-                        smooth: true,
-                        itemStyle: {
-                            color: '#3b85ff'
-                        },
-                        areaStyle: {
-                            color: '#3b85ff',
-                            opacity: 0.3
-                        },
-                    }
-                ]
+                    data: followers_values,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        width: 1
+                    },
+                    itemStyle: {
+                        color: '#9f0bff'
+                    },
+                    areaStyle: {
+                        color: '#9f0bff',
+                        opacity: 0.5
+                    },
+                }]
             };
 
-            var option2 = {
-                backgroundColor: '#1c1d1f',
-                title: {
-                    text: 'Views',
-                    left: 'center',
-                    top: '1%',
+            var option8 = {
+                backgroundColor: '#1c1c22',
+                legend: {
+                    data: ['Peak Viewers', 'Average Viewers'],
                     textStyle: {
+                        fontSize: 11,
                         fontFamily: 'karla',
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#dedede',
-                    }
+                        color: '#b2b2b2'
+                    },
                 },
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: {
                         type: 'none',
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    borderWidth: 0, 
+                    padding: [0, 0, 0, 0],
+                    textStyle: {
+                        fontFamily: 'karla',
+                        color: '#fff',
+                        fontSize: 14,
+                    },
+                    formatter: function (params) {
+                        let tooltipText = `<div style="display: flex; gap: .5em; align-items:center;font-weight:400; font-size: .9em; color:#bebebe; padding:.5em 1em; 
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+                        fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>${params[0].name}</div>`;
+                        params.forEach(function (item) {
+                            tooltipText += `
+                                <div style="display: flex; align-items: center; padding: .25em 1em; font-size:.9em;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${item.color}; margin-right: 5px;"></span>
+                                    <span>${item.seriesName}: ${item.value.toLocaleString()}</span>
+                                </div>`;
+                        });
+                        return tooltipText;
                     }
                 },
                 grid: {
-                    left: '3%',
-                    right: '3%',
-                    top: '15%',
-                    bottom: '7%',
+                    left: '0%',
+                    right: '0%',
+                    top: '25%',
+                    bottom: '0%',
                     containLabel: true
                 },
                 toolbox: {
                     feature: {
-                        dataZoom: {
-                            yAxisIndex: false
-                        },
                         saveAsImage: {
                             show: true,
                             title: 'Save Image',
-                            name: 'views',
+                            name: '{{.Channel.Username}}_growth_chart',
                             type: 'png',
                             pixelRatio: 2,
                             excludeComponents: ['toolbox']
@@ -221,36 +424,84 @@
                 },
                 xAxis: {
                     type: 'category',
-                    data: views_dates,
+                    data: growth_dates,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 yAxis: {
                     type: 'value',
-					splitLine: {
-						show: true,
-						lineStyle: {
-							color: '#303030',
-							type: 'dashed'
-						}
-					}
+                    splitLine: {
+                        show: false,
+                    },
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false }, 
                 },
                 series: [
                     {
-                        data: views_values,
+                        name: "Peak Viewers",
+                        data: growth_peak_viewers,
                         type: 'line',
                         smooth: true,
+                        symbol: 'circle',
+                        lineStyle: {
+                            width: 1
+                        },
                         itemStyle: {
-                            color: '#3b85ff'
+                            color: '#00ff61'
                         },
                         areaStyle: {
-                            color: '#3b85ff',
-                            opacity: 0.3
+                            color: '#00ff61',
+                            opacity: 0.1
+                        },
+                    },
+                    {
+                        name: "Average Viewers",
+                        data: growth_average_viewers,
+                        type: 'line',
+                        smooth: true,
+                        symbol: 'circle',
+                        lineStyle: {
+                            width: 1
+                        },
+                        itemStyle: {
+                            color: '#d8ff00'
+                        },
+                        areaStyle: {
+                            color: '#d8ff00',
+                            opacity: 0.1
                         },
                     }
                 ]
             };
 
-            chart1.setOption(option1);
-            chart2.setOption(option2);
+            chart1.setOption(GenerateBarChartOptions(chartDates, hoursWatched, 'Hours Watched', '#3a81ff'));
+            chart2.setOption(GenerateBarChartOptions(chartDates, peakViewers, 'Peak Viewers', '#79ff3a'));
+            chart3.setOption(GenerateBarChartOptions(chartDates, avgViewers, 'Average Viewers', '#ff3aab'));
+            chart4.setOption(GenerateBarChartOptions(chartDates, followersGain, 'Followers Gain', '#ffc93a'));
+            chart5.setOption(GenerateBarChartOptions(chartDates, airTime, 'Airtime', '#ff3a3a'));
+            chart6.setOption(option6);
+            chart7.setOption(option7);
+            chart8.setOption(option8);
+
+            chart1.group = 'group1';
+            chart2.group = 'group1';
+            chart3.group = 'group1';
+            chart4.group = 'group1';
+            chart5.group = 'group1';
+            echarts.connect('group1');
+
+            window.addEventListener('resize', function() {
+                chart1.resize();
+                chart2.resize();
+                chart3.resize();
+                chart4.resize();
+                chart5.resize();
+                chart6.resize();
+                chart7.resize();
+                chart8.resize();
+            });
         </script>
     </body>
 </html>

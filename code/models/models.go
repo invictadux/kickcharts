@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"net/http"
 	"time"
 )
 
@@ -74,8 +75,10 @@ func (c *Category) ScanRow(row *sql.Row) error {
 
 type Clip struct {
 	ID           string    `json:"-"`
-	Category     string    `json:"category"`
-	Channel      string    `json:"channel"`
+	CategoryName string    `json:"category_name"`
+	CategorySlug string    `json:"category_slug"`
+	ChannelName  string    `json:"channel_name"`
+	ChannelSlug  string    `json:"channel_slug"`
 	IsMature     bool      `json:"is_mature"`
 	Title        string    `json:"title"`
 	URL          string    `json:"url"`
@@ -88,9 +91,9 @@ type Clip struct {
 }
 
 func (c *Clip) Scan(rows *sql.Rows) error {
-	err := rows.Scan(&c.ID, &c.Category, &c.Channel, &c.IsMature,
-		&c.Title, &c.URL, &c.Likes, &c.LivestreamID, &c.Thumbnail,
-		&c.Views, &c.Duration, &c.CreatedAt)
+	err := rows.Scan(&c.ID, &c.CategoryName, &c.CategorySlug, &c.ChannelName,
+		&c.ChannelSlug, &c.IsMature, &c.Title, &c.URL, &c.Likes, &c.LivestreamID,
+		&c.Thumbnail, &c.Views, &c.Duration, &c.CreatedAt)
 
 	return err
 }
@@ -113,30 +116,25 @@ func (g *Graph) Scan(rows *sql.Rows) error {
 	return nil
 }
 
-func (g *Graph) ToTable() []Table {
-	table := []Table{}
-	v := g.Values[len(g.Values)-1]
-
-	for i := len(g.Dates) - 2; i > 0; i-- {
-		increment := v - g.Values[i]
-		v = g.Values[i]
-
-		t := Table{}
-		t.Date = g.Dates[i+1]
-		t.V1 = increment
-		t.V2 = g.Values[i+1]
-		table = append(table, t)
-
-		if len(g.Dates)-i > 14 {
-			break
-		}
-	}
-
-	return table
+type Pagination struct {
+	Page int
+	Path string
+	Sort string
 }
 
-type Table struct {
-	Date string
-	V1   int
-	V2   int
+func (p *Pagination) AddPath(r *http.Request) {
+	params := r.URL.Query()
+	params.Del("page")
+
+	if len(params) == 0 {
+		p.Path = r.URL.Path + "?"
+	} else {
+		p.Path = r.URL.Path + "?" + params.Encode() + "&"
+	}
+
+	if params.Has("sort") {
+		p.Sort = params.Get("sort")
+	} else {
+		p.Sort = "lv"
+	}
 }

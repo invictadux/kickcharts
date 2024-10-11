@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{{.Category.Name}} Page</title>
+        <title>Top Kick Categories - KickCharts</title>
         <meta charset="utf-8">
         <title>Index Page</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,36 +14,99 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,200..800;1,200..800&family=Rajdhani:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
     </head>
     <body>
         {{template "nav"}}
 
         <main>
-            <div class="card">
-                <div id="categories" class="categories">
-                    {{range $category := .Categories}}
-                    <div class="category">
-                        <a href="/category/{{.Slug}}"><img src="{{.Banner}}"></a>
-                        <a href="/category/{{.Slug}}"><h3>{{.Name}}</h3></a>
-                        <p>{{.PeakViewers}} peak viewers</p>
+            <div class="flex-v-0" style="align-items: start;">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path d="M10 5V1.333H6V5l2 2 2-2zM5 6H1.333v4H5l2-2-2-2zm1 5v3.667h4V11L8 9l-2 2zm5-5L9 8l2 2h3.667V6H11z"></path>
+                        </svg>
                     </div>
-                    {{end}}
+                    <h2>Most popular categories</h2>
+                    <div style="position: absolute; right: 0;">
+                        <div id="sort-select" class="custom-select-wrapper" style="width: 200px;">
+                            <div class="custom-select">
+                                <div class="custom-select__trigger">
+                                    <div class="header">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M2 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
+                                        </svg>
+                                        <span>Live Viewers</span>
+                                    </div>
+                                    <div class="arrow"></div>
+                                </div>
+                                <div class="custom-options">
+                                    <span class='custom-option {{if eq .Pagination.Sort "lv"}}selected{{end}}' data-value="lv">Live Viewers</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "lc"}}selected{{end}}' data-value="lc">Live Channels</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "pv"}}selected{{end}}' data-value="pv">Peak Viewers</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "pc"}}selected{{end}}' data-value="pc">Peak Channels</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-0">
+                    <table class="table1">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                    <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                  </svg></th>
+                                <th style="text-align: left;">Name</th>
+                                <th>Live Viewers</th>
+                                <th>Live Channels</th>
+                                <th>Peak Viewers</th>
+                                <th>Peak Channels</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $i, $category := .Categories}}
+                            <tr>
+                                <td>{{Add $.Offset $i}}</td>
+                                <td><a href="/category/{{.Slug}}"><img class="category-img" src="{{.Banner}}"></a></td>
+                                <td style="text-align: left;"><a href="/category/{{.Slug}}">{{.Name}}</a></td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .LiveViewers}}</div>
+                                    <div class="progress-container"><div class="progress-bar" 
+                                        style="background-color: #35da3a; width: {{CalculatePercent $.MostCategoryViewers .LiveViewers}}%;"></div>
+                                    </div>
+                                </td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .LiveChannels}}</div>
+                                    <div class="progress-container"><div class="progress-bar" 
+                                        style="background-color: #9f0bff; width: {{CalculatePercent $.MostCategoryChannels .LiveChannels}}%;"></div>
+                                    </div>
+                                </td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .PeakViewers}}</div>
+                                    <div class="progress-container"><div class="progress-bar" 
+                                        style="background-color: #35da3a; width: {{CalculatePercent $.PeakCategoryViewers .PeakViewers}}%;"></div>
+                                    </div>
+                                </td>
+                                <td style="position: relative; text-align: right;">
+                                    <div>{{FormatWithCommas .PeakChannels}}</div>
+                                    <div class="progress-container"><div class="progress-bar" 
+                                        style="background-color: #9f0bff; width: {{CalculatePercent $.PeakCategoryChannels .PeakChannels}}%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+            {{template "pagination" .Pagination}}
         </main>
-
+        <script>
+            document.getElementById('sort-select').addEventListener('selectChange', function(e) {
+                SelectSortAction(this);
+            });
+        </script>
         {{template "footer"}}
     </body>
-
-    <script type="text/javascript">
-        let canLoad = true;
-        let page = {page: 3, canLoad:true };
-
-        window.onscroll = function(ev) {
-            if ((window.innerHeight + window.scrollY + 200) >= document.body.offsetHeight && page.canLoad) {
-                GetCategories(page);
-            }
-        };
-    </script>
 </html>

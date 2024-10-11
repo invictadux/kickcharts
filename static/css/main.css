@@ -77,10 +77,9 @@ main {
 }
 
 .card {
-    border-radius: .5em;
     padding: 1em;
-    background: #17181b;
-    border: 1px solid var(--border);
+    background: var(--card-color);
+    border-radius: .5em;
 }
 
 .flex-1 {
@@ -112,6 +111,14 @@ main {
 }
 
 /*---------------------- Channel Page ----------------------*/
+
+
+.channel-charts {
+    background-color: var(--card-color);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    border-radius: .5em;
+}
 
 .channel-contacts {
     display: flex;
@@ -167,9 +174,14 @@ main {
 
 .table1 a {
     text-decoration: none;
-    color: #bebebe;
-    font-weight: 300;
+    color: #ffffff;
+    font-weight: 500;
     font-size: .9em;
+}
+
+.table1 a:hover {
+    text-decoration: underline;
+    color: #45ff64;
 }
 
 .table1 tbody tr:nth-child(even) {
@@ -218,90 +230,35 @@ main {
 
 /*---------------------- Category ----------------------*/
 
-.categories {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-}
-
 .category {
     display: flex;
-    flex-direction: column;
-    gap: 0.2em;
-    padding: .5em;
+    gap: 0.5em;
 }
 
 .category img {
-    width: 100%;
+    width: 120px;
     border-radius: .25em;
 }
 
-.category a {
-    text-decoration: none;
-    color: white;
-    font-family: "Rajdhani", sans-serif;
-    font-size: .9em;
-    font-weight: 700;
-    font-style: normal;
-    transition: .15s;
-}
-
-.category a:hover {
-    color: var(--green);
-}
-
-.category h3 {
+.category h2 {
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.category p {
-    margin: 0;
-}
 
 /*---------------------- Channel ----------------------*/
 
-.channels {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-}
-
 .channel {
     display: flex;
-    flex-direction: column;
-    gap: 0.2em;
-    padding: .5em;
+    gap: 1em;
 }
 
 .channel img {
-    width: 100%;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-}
-
-.channel a {
-    text-decoration: none;
-    color: white;
-    font-family: "Rajdhani", sans-serif;
-    font-size: .9em;
-    font-weight: 700;
-    font-style: normal;
-    transition: .15s;
-}
-
-.channel a:hover {
-    color: var(--green);
-}
-
-.channel h3 {
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.channel p {
-    margin: 0;
 }
 
 /*---------------------- Video-Player ----------------------*/
@@ -344,116 +301,6 @@ main {
 
 .video-player video {
     border-radius: .5em;
-}
-
-/*---------------------- Clip ----------------------*/
-
-.clips {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-clip {
-   display: flex;
-   flex-direction: column;
-   gap: 0.2em;
-   padding: .5em;
-   border-radius: .4em;
-}
-
-clip a {
-   text-decoration: none;
-   font-size: 0.8em;
-   font-weight: 300;
-   color: white;
-}
-
-clip a:hover {
-	color: var(--green);
-}
-
-clip h3 {
-    color: white;
-    font-size: 1em;
-    font-weight: 600;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-clip img {
-    cursor: pointer;
-    border-radius: .2em;
-    font-weight: 600;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-}
-
-
-.img-container {
-   position: relative;
-}
-
-.clip-content {
-    display: flex;
-    flex-direction: row;
-    gap: 0.4em;
-}
-
-.clip-game-cover {
-    width: 40px;
-    height: 56px;
-}
-
-.duration {
-   background-color: rgba(0, 0, 0, 0.8);
-   border-radius: 0.2em;
-   font-size: 1em;
-   font-weight: 400;
-   position: absolute;
-   top: 0.55em;
-   left: 0.25em;
-   padding: .3em .4em;
-   color: white;
-}
-
-.view-count {
-   background-color: rgba(0, 0, 0, 0.8);
-   border-radius: 0.2em;
-   font-size: 1em;
-   font-weight: 400;
-   position: absolute;
-   bottom: 0.55em;
-   left: 0.25em;
-   padding: .3em .4em;
-   color: white;
-}
-
-.created-date {
-   background-color: rgba(0, 0, 0, 0.8);
-   border-radius: 0.2em;
-   font-size: 1em;
-   font-weight: 400;
-   position: absolute;
-   bottom: 0.55em;
-   right: 0.25em;
-   padding: .3em .4em;
-   color: white;
-}
-
-clip span {
-	color: var(--text-color);
-}
-
-clip data {
-   display: flex;
-   flex-direction: column;
-   gap: 0.1em;
-   overflow: hidden;
-   white-space: nowrap;
-   text-overflow: ellipsis;
 }
 
 /*---------------------- Footer ----------------------*/
@@ -528,6 +375,20 @@ footer a:hover {
     height: 2.5em;
     cursor: pointer;
     border-radius: 0.3em;
+}
+
+.custom-select__trigger .header {
+    display: flex;
+    gap: .5em;
+    flex-direction: row;
+    align-items: center;
+}
+
+.custom-select__trigger .header svg {
+    align-items: center;
+    width: 18px;
+    height: 18px;
+    fill: #ffffff;
 }
 
 .custom-options {
@@ -631,16 +492,20 @@ footer a:hover {
 }
 
 .flex-v-0 {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: .5em;
+    position: relative;
 }
 
 .flex-h-0 {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: .5em;
+    position: relative;
 }
 
 .stats-card {
@@ -814,4 +679,52 @@ footer a:hover {
 .meta p {
     font-size: .9em;
     margin-bottom: 1em;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+
+.pagination ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.pagination svg {
+    display: block;
+    width: 21px;
+    height: 21px;
+    fill: #ffffff; 
+}
+
+.pagination ul li {
+    margin: 0 3px;
+}
+
+.pagination ul li a {
+    display: block;
+    padding: 7px 14px;
+    text-decoration: none;
+    border-radius: .4em;
+    border: 1px solid #050509;
+    color: #c4c4c4;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.pagination ul li:first-child a,
+.pagination ul li:last-child a {
+    padding: 6px;
+}
+
+.pagination ul li a.selected {
+    border: 1px solid #2dff50;
+}
+
+.pagination ul li a:hover {
+    border: 1px solid #2dff50;
+    color: white;
 }

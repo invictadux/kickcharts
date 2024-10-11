@@ -24,26 +24,77 @@
         {{template "nav"}}
 
         <main>
-            <div class="card">
-                <div class="clips" id="clips">
-                    {{range $clip := .Clips}}
-                       {{template "clip" $clip}}
-                    {{end}}
-              </div>
+            <div class="stats-card">
+                <div class="flex-h-0">
+                    <div class="b">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                          </svg>
+                    </div>
+                    <h2>Latest Clips</h2>
+                    <div style="position: absolute; right: 0;">
+                        <div id="sort-select" class="custom-select-wrapper" style="width: 200px;">
+                            <div class="custom-select">
+                                <div class="custom-select__trigger">
+                                    <div class="header">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M2 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
+                                        </svg>
+                                        <span>Views</span>
+                                    </div>
+                                    <div class="arrow"></div>
+                                </div>
+                                <div class="custom-options">
+                                    <span class='custom-option {{if eq .Pagination.Sort "v"}}selected{{end}}' data-value="v">Views</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "dd"}}selected{{end}}' data-value="dd">Duration Desc</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "da"}}selected{{end}}' data-value="da">Duration Asc</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "cd"}}selected{{end}}' data-value="cd">Created Desc</span>
+                                    <span class='custom-option {{if eq .Pagination.Sort "ca"}}selected{{end}}' data-value="ca">Created Asc</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="table-0">
+                        <table class="table1">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                                        <path d="M.002 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2zm1 9v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062zm5-6.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                                    </svg></th>
+                                    <th style="text-align: left;">Title</th>
+                                    <th>Views</th>
+                                    <th>Duration</th>
+                                    <th>Category</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $i, $clip := .Clips}}
+                                <tr>
+                                    <td>{{Add $.Offset $i}}</td>
+                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
+                                    <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
+                                    <td>{{FormatWithCommas .Views}}</td>
+                                    <td>{{.Duration}}s</td>
+                                    <td><a href="/category/{{.CategoryName}}">{{.CategoryName}}</a></td>
+                                    <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+            {{template "pagination" .Pagination}}
         </main>
-
+        <script>
+            document.getElementById('sort-select').addEventListener('selectChange', function(e) {
+                SelectSortAction(this);
+            });
+        </script>
         {{template "footer"}}
     </body>
-
-    <script type="text/javascript">
-        let canLoad = true;
-        let page = {page: 2, canLoad:true };
-
-        window.onscroll = function(ev) {
-            if ((window.innerHeight + window.scrollY + 200) >= document.body.offsetHeight && page.canLoad) {
-                GetClips(page);
-            }
-        };
-    </script>
 </html>

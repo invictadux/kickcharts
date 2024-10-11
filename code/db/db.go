@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 
@@ -46,10 +47,11 @@ func InsertCategory(c models.Category) error {
 }
 
 func InsertClip(c models.Clip) error {
-	_, err := db.Exec(`INSERT OR IGNORE INTO clips (id, category, channel, is_mature,
-	title, url, likes, livestream_id, thumbnail, views, duration, created_at)
-	VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, c.ID, c.Category, c.Channel, c.IsMature,
-		c.Title, c.URL, c.Likes, c.LivestreamID, c.Thumbnail, c.Views, c.Duration, c.CreatedAt)
+	_, err := db.Exec(`INSERT OR IGNORE INTO clips (id, category_name, category_slug, 
+	channel_name, channel_slug, is_mature, title, url, likes, livestream_id, thumbnail, 
+	views, duration, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, c.ID, c.CategoryName,
+		c.CategorySlug, c.ChannelName, c.ChannelSlug, c.IsMature, c.Title, c.URL, c.Likes,
+		c.LivestreamID, c.Thumbnail, c.Views, c.Duration, c.CreatedAt)
 
 	if err != nil {
 		return err
@@ -228,15 +230,32 @@ func GetChannels(offset, limit int) ([]models.Channel, error) {
 	return channels, nil
 }
 
-func GetCategoriesStats(offset, limit int) ([]models.Category, int, int) {
+func GetCategoriesStats(offset, limit int, sortField string) ([]models.Category, int, int, int, int) {
 	categories := []models.Category{}
 	mostViews := 0
 	mostChannels := 0
+	peakViews := 0
+	peakChannels := 0
 
-	rows, err := db.Query(`SELECT * FROM categories ORDER BY live_viewers DESC limit ?,?`, offset, limit)
+	switch sortField {
+	case "lv":
+		sortField = "live_viewers"
+	case "pv":
+		sortField = "peak_viewers"
+	case "lc":
+		sortField = "live_channels"
+	case "pc":
+		sortField = "peak_channels"
+	default:
+		sortField = "live_viewers"
+	}
+
+	query := fmt.Sprintf(`SELECT * FROM categories ORDER BY %s DESC limit ?,?`, sortField)
+
+	rows, err := db.Query(query, offset, limit)
 
 	if err != nil {
-		return categories, mostViews, mostChannels
+		return categories, mostViews, mostChannels, peakViews, peakChannels
 	}
 
 	for rows.Next() {
@@ -251,19 +270,41 @@ func GetCategoriesStats(offset, limit int) ([]models.Category, int, int) {
 		if c.LiveChannels > mostChannels {
 			mostChannels = c.LiveChannels
 		}
+
+		if c.PeakViewers > peakViews {
+			peakViews = c.PeakViewers
+		}
+
+		if c.PeakChannels > peakChannels {
+			peakChannels = c.PeakChannels
+		}
 	}
 
-	return categories, mostViews, mostChannels
+	return categories, mostViews, mostChannels, peakViews, peakChannels
 }
 
-func GetChannelsStats(offset, limit int) ([]models.Channel, int) {
+func GetChannelsStats(offset, limit int, sortField string) ([]models.Channel, int, int, int) {
 	channels := []models.Channel{}
 	mostViews := 0
+	peakViews := 0
+	mostFollowers := 0
 
-	rows, err := db.Query(`SELECT * FROM channels ORDER BY live_viewers DESC limit ?,?`, offset, limit)
+	switch sortField {
+	case "lv":
+		sortField = "live_viewers"
+	case "pv":
+		sortField = "peak_viewers"
+	case "f":
+		sortField = "followers_count"
+	default:
+		sortField = "live_viewers"
+	}
+
+	query := fmt.Sprintf(`SELECT * FROM channels ORDER BY %s DESC limit ?,?`, sortField)
+	rows, err := db.Query(query, offset, limit)
 
 	if err != nil {
-		return channels, mostViews
+		return channels, mostViews, peakViews, mostFollowers
 	}
 
 	for rows.Next() {
@@ -274,56 +315,119 @@ func GetChannelsStats(offset, limit int) ([]models.Channel, int) {
 		if c.LiveViewers > mostViews {
 			mostViews = c.LiveViewers
 		}
+
+		if c.PeakViewers > peakViews {
+			peakViews = c.PeakViewers
+		}
+
+		if c.FollowersCount > mostFollowers {
+			mostFollowers = c.FollowersCount
+		}
 	}
 
-	return channels, mostViews
+	return channels, mostViews, peakViews, mostFollowers
 }
 
-func GetClips(offset, limit int) ([]models.Clip, error) {
-	clips := []models.Clip{}
-	rows, err := db.Query(`SELECT * FROM clips ORDER BY views DESC limit ?,?`, offset, limit)
+func GetChannelStats(slug string) map[string]interface{} {
+	row := db.QueryRow(`WITH last_30_days AS (
+		SELECT slug, ts, n 
+		FROM channels_views_chart
+		WHERE slug = ? 
+		AND ts >= datetime('now', '-30 days')
+	),
+	views_stats AS (
+		-- Calculate peak viewers and average viewers
+		SELECT 
+			MAX(n) AS peak_viewers,
+			AVG(n) AS average_viewers,
+			COUNT(DISTINCT ts) * 1.0 / 60 AS airtime_hours
+		FROM last_30_days
+	),
+	followers_stats AS (
+		SELECT 
+			MAX(n) - MIN(n) AS followers_gain
+		FROM channels_followers_chart
+		WHERE slug = ? 
+		AND ts >= datetime('now', '-30 days')
+	)
+	SELECT 
+		v.peak_viewers,
+		v.average_viewers,
+		v.airtime_hours,
+		f.followers_gain,
+		(v.average_viewers * v.airtime_hours) AS hours_watched
+	FROM views_stats v
+	JOIN followers_stats f;`, slug, slug)
 
+	var peakViewers int
+	var averageViewers string
+	var airtime int
+	var followersGain string
+	var hoursWatched int
+
+	row.Scan(&peakViewers, &averageViewers, &airtime,
+		&followersGain, &hoursWatched)
+
+	data := map[string]interface{}{}
+	data["Airtime"] = airtime
+	data["PeakViewers"] = peakViewers
+	data["AverageViewers"] = averageViewers
+	data["FollowersGain"] = followersGain
+	data["HoursWatched"] = hoursWatched
+	return data
+}
+
+func GetClips(params url.Values, offset, limit int) ([]models.Clip, error) {
+	clips := []models.Clip{}
+
+	query := `SELECT * FROM clips`
+	var args []interface{}
+
+	conditions := []string{}
+
+	if params.Has("category") {
+		conditions = append(conditions, "category_slug = ?")
+		args = append(args, params.Get("category"))
+	}
+
+	if params.Has("channel") {
+		conditions = append(conditions, "channel_slug = ?")
+		args = append(args, params.Get("channel"))
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	switch params.Get("sort") {
+	case "v":
+		query += " ORDER BY views DESC"
+	case "dd":
+		query += " ORDER BY duration DESC"
+	case "da":
+		query += " ORDER BY duration ASC"
+	case "cd":
+		query += " ORDER BY created_at DESC"
+	case "ca":
+		query += " ORDER BY created_at ASC"
+	default:
+		query += " ORDER BY views DESC"
+	}
+
+	query += " LIMIT ?, ?"
+	args = append(args, offset, limit)
+
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return clips, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var clip models.Clip
-		clip.Scan(rows)
-		clips = append(clips, clip)
-	}
-
-	return clips, nil
-}
-
-func GetChannelClips(channel string, offset, limit int) ([]models.Clip, error) {
-	clips := []models.Clip{}
-	rows, err := db.Query(`SELECT * FROM clips WHERE channel=? ORDER BY views DESC limit ?,?`, channel, offset, limit)
-
-	if err != nil {
-		return clips, err
-	}
-
-	for rows.Next() {
-		var clip models.Clip
-		clip.Scan(rows)
-		clips = append(clips, clip)
-	}
-
-	return clips, nil
-}
-
-func GetCategoryClips(category string, offset, limit int) ([]models.Clip, error) {
-	clips := []models.Clip{}
-	rows, err := db.Query(`SELECT * FROM clips WHERE category=? ORDER BY views DESC limit ?,?`, category, offset, limit)
-
-	if err != nil {
-		return clips, err
-	}
-
-	for rows.Next() {
-		var clip models.Clip
-		clip.Scan(rows)
+		if err := clip.Scan(rows); err != nil {
+			return clips, err
+		}
 		clips = append(clips, clip)
 	}
 
@@ -463,9 +567,239 @@ func GetCategoryViewsGraph(channel, t1, t2 string) models.Graph {
 	return graph
 }
 
-func GetChannelsSlug() *chan string {
-	ch := make(chan string, 100000)
-	rows, err := db.Query(`SELECT slug FROM channels WHERE peak_viewers > 50`)
+func GetCategoryGrowthData(category string) map[string]interface{} {
+	rows, err := db.Query(`WITH views_data AS (
+		SELECT 
+			slug,
+			DATE(ts) AS date,
+			MAX(n) AS peak_viewers,
+			AVG(n) AS average_viewers
+		FROM 
+			categories_views_chart
+		WHERE 
+			slug = ?
+		GROUP BY 
+			slug, date
+	),
+	channels_data AS (
+		SELECT 
+			slug,
+			DATE(ts) AS date,
+			MAX(n) AS peak_channels,
+			AVG(n) AS average_channels
+		FROM 
+			categories_live_channels_chart
+		WHERE 
+			slug = ?
+		GROUP BY 
+			slug, date
+	)
+	SELECT 
+		v.date,
+		v.peak_viewers,
+		v.average_viewers,
+		c.peak_channels,
+		c.average_channels
+	FROM 
+		views_data v
+	JOIN 
+		channels_data c
+	ON 
+		v.slug = c.slug
+	AND 
+		v.date = c.date
+	ORDER BY 
+		v.date`, category, category)
+
+	if err != nil {
+		return map[string]interface{}{}
+	}
+
+	var dates []string
+	var peakViewers []int
+	var avgViewers []int
+	var peakChannels []int
+	var avgChannels []int
+
+	for rows.Next() {
+		var d string
+		var pv int
+		var av float64
+		var pc int
+		var ac float64
+
+		rows.Scan(&d, &pv, &av, &pc, &ac)
+		t, _ := time.Parse("2006-01-02", d)
+		dates = append(dates, t.Format("Jan 02, 2006")+" UTC")
+		peakViewers = append(peakViewers, pv)
+		avgViewers = append(avgViewers, int(av))
+		peakChannels = append(peakChannels, pc)
+		avgChannels = append(avgChannels, int(ac))
+	}
+
+	data := map[string]interface{}{}
+	data["Dates"] = dates
+	data["PeakViewers"] = peakViewers
+	data["AverageViewers"] = avgViewers
+	data["PeakChannels"] = peakChannels
+	data["AverageChannels"] = avgChannels
+	return data
+}
+
+func GetChannelGrowthData(channel string) map[string]interface{} {
+	rows, err := db.Query(`
+	WITH views_data AS (
+		SELECT 
+			slug,
+			DATE(ts) AS date,
+			MAX(n) AS peak_viewers,
+			AVG(n) AS average_viewers
+		FROM 
+			channels_views_chart
+		WHERE 
+			slug = ?
+		GROUP BY 
+			slug, date
+	)
+	SELECT 
+		date,
+		peak_viewers,
+		average_viewers
+	FROM 
+		views_data
+	ORDER BY 
+		date`, channel)
+
+	if err != nil {
+		return map[string]interface{}{}
+	}
+
+	var dates []string
+	var peakViewers []int
+	var avgViewers []int
+
+	for rows.Next() {
+		var d string
+		var pv int
+		var av float64
+
+		rows.Scan(&d, &pv, &av)
+		t, _ := time.Parse("2006-01-02", d)
+		dates = append(dates, t.Format("Jan 02, 2006")+" UTC")
+		peakViewers = append(peakViewers, pv)
+		avgViewers = append(avgViewers, int(av))
+	}
+
+	data := map[string]interface{}{}
+	data["Dates"] = dates
+	data["PeakViewers"] = peakViewers
+	data["AverageViewers"] = avgViewers
+	return data
+}
+
+func GetChannelLast30DGraphs(channel string) map[string]interface{} {
+	rows, err := db.Query(`WITH RECURSIVE date_series AS (
+		SELECT date('now', '-29 days') AS date
+		UNION ALL
+		SELECT date(date, '+1 day')
+		FROM date_series
+		WHERE date < date('now')
+	),
+	views_data AS (
+		SELECT 
+			DATE(ts) AS date,
+			SUM(n) AS hours_watched,
+			MAX(n) AS peak_viewers,
+			AVG(n) AS average_viewers
+		FROM 
+			channels_views_chart
+		WHERE 
+			slug = ?
+		GROUP BY 
+			DATE(ts)
+	),
+	followers_data AS (
+		SELECT 
+			DATE(ts) AS date,
+			SUM(n) AS followers_gain
+		FROM 
+			channels_followers_chart
+		WHERE 
+			slug = ?
+		GROUP BY 
+			DATE(ts)
+	),
+	combined_data AS (
+		SELECT
+			ds.date,
+			IFNULL(vd.hours_watched, 0) AS hours_watched,
+			IFNULL(vd.peak_viewers, 0) AS peak_viewers,
+			IFNULL(vd.average_viewers, 0) AS average_viewers,
+			IFNULL(fd.followers_gain, 0) AS followers_gain
+		FROM 
+			date_series ds
+		LEFT JOIN 
+			views_data vd ON ds.date = vd.date
+		LEFT JOIN 
+			followers_data fd ON ds.date = fd.date
+	)
+	SELECT
+		date,
+		hours_watched,
+		peak_viewers,
+		average_viewers,
+		followers_gain,
+		CASE 
+			WHEN hours_watched > 0 THEN 1
+			ELSE 0
+		END AS airtime
+	FROM 
+		combined_data
+	ORDER BY 
+		date`, channel, channel)
+
+	if err != nil {
+		return map[string]interface{}{}
+	}
+
+	var dates []string
+	var hoursWatched []int
+	var peakViewers []int
+	var avgViewers []int
+	var followersGain []int
+	var airTime []int
+
+	for rows.Next() {
+		var d string
+		var hw int
+		var pv int
+		var av float64
+		var fg int
+		var at int
+
+		rows.Scan(&d, &hw, &pv, &av, &fg, &at)
+		t, _ := time.Parse("2006-01-02", d)
+		dates = append(dates, t.Format("02 Jan"))
+		hoursWatched = append(hoursWatched, hw)
+		peakViewers = append(peakViewers, pv)
+		avgViewers = append(avgViewers, int(av))
+		followersGain = append(followersGain, fg)
+		airTime = append(airTime, at)
+	}
+
+	data := map[string]interface{}{}
+	data["Dates"] = dates
+	data["HoursWatched"] = hoursWatched
+	data["PeakViewers"] = peakViewers
+	data["AverageViewers"] = avgViewers
+	data["FollowersGain"] = followersGain
+	data["AirTime"] = airTime
+	return data
+}
+
+func GetChannelsSlug(offset, limit int) *chan string {
+	ch := make(chan string, limit)
+	rows, err := db.Query(`SELECT slug FROM channels LIMIT ?,?`, offset, limit)
 
 	if err != nil {
 		close(ch)
@@ -556,6 +890,106 @@ func GetOverallChannelsStats() (int, string, int, string, int) {
 	row.Scan(&last30DaysPeak, &last30DaysPeakDate, &allTimePeak, &allTimePeakDate, &last7DaysAvg)
 
 	return last30DaysPeak, last30DaysPeakDate, allTimePeak, allTimePeakDate, int(last7DaysAvg)
+}
+
+func GetCategoryViewsStats(slug string) map[string]interface{} {
+	row := db.QueryRow(`SELECT 
+		(SELECT ts 
+		FROM categories_views_chart 
+		WHERE slug = ? 
+		AND ts >= date('now', '-7 days') 
+		ORDER BY n DESC, ts DESC 
+		LIMIT 1) AS ts_peak_7_days,
+		
+		MAX(CASE WHEN ts >= date('now', '-7 days') THEN n END) AS peak_views_7_days,
+
+		(SELECT ts 
+		FROM categories_views_chart 
+		WHERE slug = ? 
+		AND ts >= date('now', '-30 days') 
+		ORDER BY n DESC, ts DESC 
+		LIMIT 1) AS ts_peak_30_days,
+		
+		MAX(CASE WHEN ts >= date('now', '-30 days') THEN n END) AS peak_views_30_days,
+
+		(SELECT ts 
+		FROM categories_views_chart 
+		WHERE slug = ? 
+		ORDER BY n DESC, ts DESC 
+		LIMIT 1) AS ts_peak_all_time,
+		
+		MAX(n) AS peak_views_all_time
+	FROM categories_views_chart
+	WHERE slug = ?`, slug, slug, slug, slug)
+
+	var last7DaysPeak int
+	var last7DaysPeakDate string
+	var last30DaysPeak int
+	var last30DaysPeakDate string
+	var allTimePeak int
+	var allTimePeakDate string
+
+	row.Scan(&last7DaysPeakDate, &last7DaysPeak, &last30DaysPeakDate,
+		&last30DaysPeak, &allTimePeakDate, &allTimePeak)
+
+	data := map[string]interface{}{}
+	data["Last7DaysPeak"] = last7DaysPeak
+	data["Last7DaysPeakDate"] = last7DaysPeakDate
+	data["Last30DaysPeak"] = last30DaysPeak
+	data["Last30DaysPeakDate"] = last30DaysPeakDate
+	data["AllTimePeak"] = allTimePeak
+	data["AllTimePeakDate"] = allTimePeakDate
+	return data
+}
+
+func GetCategoryChannelStats(slug string) map[string]interface{} {
+	row := db.QueryRow(`SELECT 
+		(SELECT ts 
+		FROM categories_live_channels_chart 
+		WHERE slug = ? 
+		AND ts >= date('now', '-7 days') 
+		ORDER BY n DESC, ts DESC 
+		LIMIT 1) AS ts_peak_7_days,
+		
+		MAX(CASE WHEN ts >= date('now', '-7 days') THEN n END) AS peak_views_7_days,
+
+		(SELECT ts 
+		FROM categories_live_channels_chart 
+		WHERE slug = ? 
+		AND ts >= date('now', '-30 days') 
+		ORDER BY n DESC, ts DESC 
+		LIMIT 1) AS ts_peak_30_days,
+		
+		MAX(CASE WHEN ts >= date('now', '-30 days') THEN n END) AS peak_views_30_days,
+
+		(SELECT ts 
+		FROM categories_live_channels_chart 
+		WHERE slug = ? 
+		ORDER BY n DESC, ts DESC 
+		LIMIT 1) AS ts_peak_all_time,
+		
+		MAX(n) AS peak_views_all_time
+	FROM categories_live_channels_chart
+	WHERE slug = ?`, slug, slug, slug, slug)
+
+	var last7DaysPeak int
+	var last7DaysPeakDate string
+	var last30DaysPeak int
+	var last30DaysPeakDate string
+	var allTimePeak int
+	var allTimePeakDate string
+
+	row.Scan(&last7DaysPeakDate, &last7DaysPeak, &last30DaysPeakDate,
+		&last30DaysPeak, &allTimePeakDate, &allTimePeak)
+
+	data := map[string]interface{}{}
+	data["Last7DaysPeak"] = last7DaysPeak
+	data["Last7DaysPeakDate"] = last7DaysPeakDate
+	data["Last30DaysPeak"] = last30DaysPeak
+	data["Last30DaysPeakDate"] = last30DaysPeakDate
+	data["AllTimePeak"] = allTimePeak
+	data["AllTimePeakDate"] = allTimePeakDate
+	return data
 }
 
 func GetViewersChartStats(t string) map[string]interface{} {

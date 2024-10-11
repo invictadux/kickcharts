@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"invictadux/code/db"
 	"invictadux/code/funcmaps"
+	"invictadux/code/models"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -86,9 +88,9 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 
 	viewsChart := db.GetOverallViewsGraph(t1, t2)
 	channelsChart := db.GetOverallChannelsGraph(t1, t2)
-	categories, mostViews, mostChannels := db.GetCategoriesStats(0, 10)
-	channels, mostChannelViews := db.GetChannelsStats(0, 10)
-	clips, _ := db.GetClips(0, 10)
+	categories, mostViews, mostChannels, _, _ := db.GetCategoriesStats(0, 10, "lv")
+	channels, mostChannelViews, _, _ := db.GetChannelsStats(0, 10, "lv")
+	clips, _ := db.GetClips(url.Values{}, 0, 10)
 	peak30DViews, peak30DViewsDate, allTimePeakViews, allTimePeakViewsDate, avg7DViews := db.GetOverallViewsStats()
 	peak30DChannels, peak30DChannelsDate, allTimePeakChannels, allTimePeakChannelsDate, avg7DChannels := db.GetOverallChannelsStats()
 
@@ -116,13 +118,12 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	page["MostCategoryViews"] = mostViews
 	page["MostCategoryChannels"] = mostChannels
 	page["MostChannelViews"] = mostChannelViews
-	page["MostClipViews"] = clips[0].Views
 
 	indexTemplate.Execute(w, page)
 }
 
 func ChannelPage(w http.ResponseWriter, r *http.Request) {
-	channel := r.PathValue("channel")
+	slug := r.PathValue("channel")
 
 	now := time.Now().UTC()
 	t1 := now.Add(-time.Hour * 24 * 7).Format("2006-01-02 15:04:05")
@@ -130,49 +131,123 @@ func ChannelPage(w http.ResponseWriter, r *http.Request) {
 	t1Followers := now.Add(-time.Hour * 24 * 30).Format("2006-01-02 15:04:05")
 	t2Followers := now.Add(-time.Hour * 24).Format("2006-01-02 15:04:05")
 
+	channel, _ := db.GetChannel(slug)
+
+	clips, _ := db.GetClips(url.Values{"channel": []string{slug}}, 0, 10)
+
 	page := map[string]interface{}{}
-	page["Channel"], _ = db.GetChannel(channel)
-	followersGraph := db.GetChannelFollowersGraph(channel, t1Followers, t2Followers)
-	followersTable := followersGraph.ToTable()
+	page["Channel"] = channel
+	page["Stats"] = db.GetChannelStats(slug)
+	followersGraph := db.GetChannelFollowersGraph(slug, t1Followers, t2Followers)
 	page["FollowersChart"] = followersGraph
-	page["FollowersTable"] = followersTable
-	page["ViewsChart"] = db.GetChannelViewsGraph(channel, t1, t2)
-	page["Clips"], _ = db.GetChannelClips(channel, 0, 6)
+	page["ViewsChart"] = db.GetChannelViewsGraph(slug, t1, t2)
+	page["Clips"] = clips
+	page["Growth"] = db.GetChannelGrowthData(slug)
+	page["Charts"] = db.GetChannelLast30DGraphs(slug)
 
 	channelTemplate.Execute(w, page)
 }
 
 func ChannelsPage(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	pagination := models.Pagination{}
+	pagination.AddPath(r)
+	pagination.Page, _ = strconv.Atoi(params.Get("page"))
+
+	if pagination.Page <= 0 {
+		pagination.Page = 1
+	}
+
+	limit := 50
+	offset := (pagination.Page - 1) * limit
+
+	channels, mv, pv, mf := db.GetChannelsStats(offset, limit, params.Get("sort"))
+
 	page := map[string]interface{}{}
-	page["Channels"], _ = db.GetChannels(0, 60)
+	page["Channels"] = channels
+	page["Offset"] = offset + 1
+	page["MostChannelViewers"] = mv
+	page["PeakChannelViewers"] = pv
+	page["MostChannelFollowers"] = mf
+	page["Pagination"] = pagination
 	channelsTemplate.Execute(w, page)
 }
 
 func CategoryPage(w http.ResponseWriter, r *http.Request) {
-	category := r.PathValue("category")
+	slug := r.PathValue("category")
 
 	now := time.Now().UTC()
 	t1 := now.Add(-time.Hour * 24 * 7).Format("2006-01-02 15:04:05")
 	t2 := now.Add(-time.Hour).Format("2006-01-02 15:04:05")
 
+	clips, _ := db.GetClips(url.Values{"category": []string{slug}}, 0, 10)
+	mostClipsViews := 0
+
+	if len(clips) > 0 {
+		mostClipsViews = clips[0].Views
+	}
+
+	category, _ := db.GetCategory(slug)
+
 	page := map[string]interface{}{}
-	page["Category"], _ = db.GetCategory(category)
-	page["ChannelsChart"] = db.GetCategoryChannelsGraph(category, t1, t2)
-	page["ViewsChart"] = db.GetCategoryViewsGraph(category, t1, t2)
-	page["Clips"], _ = db.GetCategoryClips(category, 0, 6)
+	page["Slug"] = slug
+	page["Category"] = category
+	page["Views"] = db.GetCategoryViewsStats(slug)
+	page["Channels"] = db.GetCategoryChannelStats(slug)
+	page["ChannelsChart"] = db.GetCategoryChannelsGraph(slug, t1, t2)
+	page["ViewsChart"] = db.GetCategoryViewsGraph(slug, t1, t2)
+	page["Growth"] = db.GetCategoryGrowthData(slug)
+	page["Clips"] = clips
+	page["MostClipViews"] = mostClipsViews
 
 	categoryTemplate.Execute(w, page)
 }
 
 func CategoriesPage(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	pagination := models.Pagination{}
+	pagination.AddPath(r)
+	pagination.Page, _ = strconv.Atoi(params.Get("page"))
+
+	if pagination.Page <= 0 {
+		pagination.Page = 1
+	}
+
+	limit := 50
+	offset := (pagination.Page - 1) * limit
+
+	categories, mv, mc, pv, pc := db.GetCategoriesStats(offset, limit, params.Get("sort"))
+
 	page := map[string]interface{}{}
-	page["Categories"], _ = db.GetCategories(0, 60)
+	page["Categories"] = categories
+	page["Offset"] = offset + 1
+	page["MostCategoryViewers"] = mv
+	page["MostCategoryChannels"] = mc
+	page["PeakCategoryViewers"] = pv
+	page["PeakCategoryChannels"] = pc
+	page["Pagination"] = pagination
 	categoriesTemplate.Execute(w, page)
 }
 
 func ClipsPage(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	pagination := models.Pagination{}
+	pagination.AddPath(r)
+	pagination.Page, _ = strconv.Atoi(params.Get("page"))
+
+	if pagination.Page <= 0 {
+		pagination.Page = 1
+	}
+
+	limit := 50
+	offset := (pagination.Page - 1) * limit
+
+	clips, _ := db.GetClips(params, offset, limit)
+
 	page := map[string]interface{}{}
-	page["Clips"], _ = db.GetClips(0, 28)
+	page["Clips"] = clips
+	page["Offset"] = offset + 1
+	page["Pagination"] = pagination
 	clipsTemplate.Execute(w, page)
 }
 
@@ -185,90 +260,6 @@ func IndexAPI(w http.ResponseWriter, r *http.Request) {
 func ClientError(w http.ResponseWriter, r *http.Request, stausCode int) {
 	w.WriteHeader(stausCode)
 	w.Write([]byte(`{"status":"error","message":"You send some data incorrectly!"}`))
-}
-
-func ChannelsAPI(w http.ResponseWriter, r *http.Request) {
-	params := r.URL.Query()
-	var err error
-	page := 1
-
-	if params.Has("page") {
-		page, err = strconv.Atoi(params.Get("page"))
-
-		if err != nil {
-			ClientError(w, r, 400)
-			return
-		}
-	}
-
-	limit := 30
-	offset := (page - 1) * limit
-
-	channels, err := db.GetChannels(offset, limit)
-
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(`{"status":"error"}`))
-		return
-	}
-
-	json.NewEncoder(w).Encode(channels)
-}
-
-func CategoriesAPI(w http.ResponseWriter, r *http.Request) {
-	params := r.URL.Query()
-	var err error
-	page := 1
-
-	if params.Has("page") {
-		page, err = strconv.Atoi(params.Get("page"))
-
-		if err != nil {
-			ClientError(w, r, 400)
-			return
-		}
-	}
-
-	limit := 30
-	offset := (page - 1) * limit
-
-	categories, err := db.GetCategories(offset, limit)
-
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(`{"status":"error"}`))
-		return
-	}
-
-	json.NewEncoder(w).Encode(categories)
-}
-
-func ClipsAPI(w http.ResponseWriter, r *http.Request) {
-	params := r.URL.Query()
-	var err error
-	page := 1
-
-	if params.Has("page") {
-		page, err = strconv.Atoi(params.Get("page"))
-
-		if err != nil {
-			ClientError(w, r, 400)
-			return
-		}
-	}
-
-	limit := 30
-	offset := (page - 1) * limit
-
-	clips, err := db.GetClips(offset, limit)
-
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(`{"status":"error"}`))
-		return
-	}
-
-	json.NewEncoder(w).Encode(clips)
 }
 
 func ChartStatsAPI(w http.ResponseWriter, r *http.Request) {
@@ -333,9 +324,6 @@ func main() {
 
 	//------------------ API ------------------
 	mux.Handle("GET /api/v1/index", APIMiddleware(http.HandlerFunc(IndexAPI)))
-	mux.Handle("GET /api/v1/channels", APIMiddleware(http.HandlerFunc(ChannelsAPI)))
-	mux.Handle("GET /api/v1/categories", APIMiddleware(http.HandlerFunc(CategoriesAPI)))
-	mux.Handle("GET /api/v1/clips", APIMiddleware(http.HandlerFunc(ClipsAPI)))
 	mux.Handle("GET /api/v1/chart/stats", APIMiddleware(http.HandlerFunc(ChartStatsAPI)))
 
 	server := &http.Server{
