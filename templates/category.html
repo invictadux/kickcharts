@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>{{.Category.Name}} - Kick Statistics and Analytics</title>
         <meta charset="utf-8">
@@ -22,6 +22,25 @@
         <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
         <link href="https://unpkg.com/@videojs/themes@1/dist/forest/index.css" rel="stylesheet">
         <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+
+        <meta name="description" content="Detailed {{.Category.Name}} viewership stats on Kick -> Viewers, channels, growth & popularity charts and more">
+        <link rel="canonical" href="https://kickcharts.net/category/{{.Channel.Slug}}" />
+        <meta property="og:title" content="{{.Category.Name}} - Kick Statistics and Analytics" />
+        <meta property="og:description" content="Detailed {{.Category.Name}} viewership stats on Kick -> Viewers, channels, growth & popularity charts and more" />
+        <meta property="og:image" content="https://kickcharts.net/static/images/overview.jpg" />
+        <meta name="twitter:image" content="https://kickcharts.net/static/images/overview.jpg" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="{{.Category.Name}} - Kick Statistics and Analytics" />
+        <meta name="twitter:description" content="Detailed {{.Category.Name}} viewership stats on Kick -> Viewers, channels, growth & popularity charts and more" />
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "{{.Category.Name}} - Kick Statistics and Analytics",
+                "description": "Detailed {{.Category.Name}} viewership stats on Kick -> Viewers, channels, growth & popularity charts and more",
+                "image": "https://kickcharts.net/static/images/overview.jpg"
+            }
+        </script>      
     </head>
     <body>
         {{template "nav"}}
