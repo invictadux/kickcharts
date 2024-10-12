@@ -1,7 +1,14 @@
+var referrer = "";
+
+if (document.referrer !== "") {
+    var referrerURL = new URL(document.referrer);
+    referrer = referrerURL.host;
+}
+
 var data = {
     'path': window.location.pathname,
     'domain': window.location.host,
-    'referer': document.referer,
+    'referrer': referrer,
 }
 
 var xhr = new XMLHttpRequest();

@@ -230,6 +230,23 @@ func GetChannels(offset, limit int) ([]models.Channel, error) {
 	return channels, nil
 }
 
+func GetAllChannels() []string {
+	channels := []string{}
+	rows, err := db.Query(`SELECT slug FROM channels`)
+
+	if err != nil {
+		return channels
+	}
+
+	for rows.Next() {
+		var slug string
+		rows.Scan(&slug)
+		channels = append(channels, slug)
+	}
+
+	return channels
+}
+
 func GetCategoriesStats(offset, limit int, sortField string) ([]models.Category, int, int, int, int) {
 	categories := []models.Category{}
 	mostViews := 0
@@ -457,6 +474,23 @@ func GetCategories(offset, limit int) ([]models.Category, error) {
 	}
 
 	return categorries, nil
+}
+
+func GetAllCategories() []string {
+	categories := []string{}
+	rows, err := db.Query(`SELECT slug FROM categories`)
+
+	if err != nil {
+		return categories
+	}
+
+	for rows.Next() {
+		var slug string
+		rows.Scan(&slug)
+		categories = append(categories, slug)
+	}
+
+	return categories
 }
 
 func GetOverallChannelsGraph(t1, t2 string) models.Graph {
