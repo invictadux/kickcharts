@@ -172,11 +172,13 @@
                                     {{range $i, $channel := .Channels}}
                                     <tr>
                                         <td>{{Add $i 1}}</td>
-                                        <td><a href="/channel/{{.Slug}}"><img class="profile-pic" src="{{.Picture}}"></a></td>
+                                        <td><a href="/channel/{{.Slug}}" style="position: relative;"><img class="profile-pic" src="{{.Picture}}">
+                                            <div class="live-circle"></div></a>
+                                        </td>
                                         <td style="text-align: left;"><a href="/channel/{{.Slug}}">{{.Username}}</a></td>
                                         <td>{{.Language}}</td>
                                         <td style="position: relative; text-align: right;">
-                                            <div>{{.LiveViewers}}</div>
+                                            <div>{{FormatWithCommas .LiveViewers}}</div>
                                             <div class="progress-container">
                                                 <div class="progress-bar" style="background-color: #35da3a; width: {{CalculatePercent $.MostChannelViews .LiveViewers}}%;"></div>
                                             </div>

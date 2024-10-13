@@ -139,8 +139,9 @@ func GetAllCategories() *chan (string) {
 	return &categories
 }
 
-func GetAllCategoriesLivestreams(chSlugs *chan string) {
+func GetAllCategoriesLivestreams(chSlugs *chan string) []string {
 	totalChannels := 0
+	liveChannels := []string{}
 
 	for {
 		slug, ok := <-*chSlugs
@@ -176,6 +177,8 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 
 			for _, livestream := range data.Data {
 				if livestream.Viewers > maxChannelViewerCount {
+					liveChannels = append(liveChannels, livestream.Channel.Slug)
+
 					channel := models.Channel{
 						Username:       livestream.Channel.User.Username,
 						Slug:           livestream.Channel.Slug,
@@ -256,6 +259,7 @@ func GetAllCategoriesLivestreams(chSlugs *chan string) {
 	}
 
 	db.InsertOverallLiveChannelsChartPoint(totalChannels)
+	return liveChannels
 }
 
 func GetChannelsData(chSlugs *chan string, goroutines int) {
@@ -418,7 +422,8 @@ func Run() {
 			//GetChannelsData(chSlug, 5)
 
 			categories := GetAllCategories()
-			GetAllCategoriesLivestreams(categories)
+			liveChannels := GetAllCategoriesLivestreams(categories)
+			db.SetChannelsLiveStatus(&liveChannels)
 			GetAllClips()
 
 			if now.Hour() == 0 {

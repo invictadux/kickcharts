@@ -8,7 +8,6 @@ import (
 	"invictadux/code/funcmaps"
 	"invictadux/code/models"
 	"invictadux/code/scraper"
-	"invictadux/code/sitemap"
 	"log"
 	"net/http"
 	"net/url"
@@ -303,7 +302,7 @@ func ChartStatsAPI(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 	db.Init()
-	sitemap.Generate()
+	//sitemap.Generate()
 	go scraper.Run()
 
 	indexTemplate = funcmaps.NewTemplate("templates/index.html", "templates/templates.html")

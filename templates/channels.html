@@ -82,7 +82,9 @@
                             {{range $i, $channel := .Channels}}
                             <tr>
                                 <td>{{Add $.Offset $i}}</td>
-                                <td><a href="/channel/{{.Slug}}"><img class="profile-pic" src="{{.Picture}}"></a></td>
+                                <td><a href="/channel/{{.Slug}}" style="position: relative;"><img class="profile-pic" src="{{.Picture}}">
+                                    {{if .Live}}<div class="live-circle"></div>{{end}}</a>
+                                </td>
                                 <td style="text-align: left;"><a href="/channel/{{.Slug}}">{{.Username}}</a></td>
                                 <td>{{.Language}}</td>
                                 <td style="position: relative; text-align: right;">

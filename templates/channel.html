@@ -46,7 +46,10 @@
 
         <main>
             <div class="channel">
-                <img src="{{.Channel.Picture}}">
+                <div style="position: relative;">
+                    <img src="{{.Channel.Picture}}">
+                    {{if .Channel.Live}}<div class="live-circle big"></div>{{end}}
+                </div>
                 <div class="flex-v-0" style="align-items: start;">
                     <h2>{{.Channel.Username}}</h2>
                     <p>{{.Channel.Description}}</p>
@@ -299,7 +302,7 @@
                     },
                     areaStyle: {
                         color: '#35da3a',
-                        opacity: 0.5
+                        opacity: 0.3
                     },
                 }]
             };
@@ -326,19 +329,12 @@
                         params.forEach(function (item) {
                             tooltipText += `
                                 <div style="display: flex; justify-content: space-between; padding: .5em 1em; font-size:.9em;">
-                                    <span style="color:${item.color};">Channels: </span>
+                                    <span style="color:${item.color};">Followers: </span>
                                     <span>${item.value.toLocaleString()}</span>
                                 </div>`;
                         });
                         return tooltipText;
                     }
-                },
-                grid: {
-                    left: '0%',
-                    right: '0%',
-                    top: '15%',
-                    bottom: '0%',
-                    containLabel: true
                 },
                 toolbox: {
                     feature: {
@@ -351,6 +347,13 @@
                             excludeComponents: ['toolbox']
                         }
                     }
+                },
+                grid: {
+                    left: '0%',
+                    right: '0%',
+                    top: '15%',
+                    bottom: '0%',
+                    containLabel: true
                 },
                 xAxis: {
                     type: 'category',
@@ -377,11 +380,11 @@
                         width: 1
                     },
                     itemStyle: {
-                        color: '#9f0bff'
+                        color: '#ffc93a'
                     },
                     areaStyle: {
-                        color: '#9f0bff',
-                        opacity: 0.5
+                        color: '#ffc93a',
+                        opacity: 0.3
                     },
                 }]
             };

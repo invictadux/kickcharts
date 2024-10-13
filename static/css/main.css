@@ -728,3 +728,32 @@ footer a:hover {
     border: 1px solid #2dff50;
     color: white;
 }
+
+/*------------------------------ Live Dot ------------------------------*/
+
+.live-circle {
+    position: absolute;
+    background-color: #ff0c0c;
+    top: 0;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: 0px 0px 1px 1px #0000001a;
+    animation: pulse-animation 2.5s infinite;
+}
+
+.live-circle.big {
+    width: 10px;
+    height: 10px;
+    top: 50px;
+}
+  
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0px rgba(255, 12, 12, 0.7);
+    }
+    100% {
+        box-shadow: 0 0 0 5px rgba(255, 12, 12, 0);
+    }
+}

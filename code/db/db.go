@@ -1136,6 +1136,25 @@ func GetChannelsChartStats(t string) map[string]interface{} {
 	return data
 }
 
+func SetChannelsLiveStatus(liveChannels *[]string) error {
+	placeholders := make([]string, len(*liveChannels))
+	args := make([]interface{}, len(*liveChannels))
+	for i, channel := range *liveChannels {
+		placeholders[i] = "?"
+		args[i] = channel
+	}
+
+	query := fmt.Sprintf(`UPDATE channels SET live_viewers = 0, live = 0 
+        WHERE slug NOT IN (%s)`, strings.Join(placeholders, ", "))
+
+	_, err := db.Exec(query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 /*
 func GetMainSuggestions(query string) []models.Sugg {
 	suggestions := []models.Sugg{}
