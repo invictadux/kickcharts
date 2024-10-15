@@ -5,7 +5,7 @@
         <meta charset="utf-8">
         <title>Index Page</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="#000">
 
         <link rel="icon" type="image/png" href="/static/images/logo.png">
         <link rel="stylesheet" href="/static/css/main.css">
@@ -47,7 +47,7 @@
 
         <main>
             <div class="category">
-                <img src="{{.Category.Banner}}">
+                <img src="{{.Category.Banner}}" alt="{{.Category.Name}} - Kick Charts">
                 <div class="flex-v-0" style="align-items: start;">
                     <h2>{{.Category.Name}}</h2>
                     <p>{{.Category.Description}}</p>
@@ -129,7 +129,7 @@
                     <h2>Latest Clips</h2>
                 </div>
                 <div>
-                    <div class="table-0">
+                    <div class="table-container">
                         <table class="table1">
                             <thead>
                                 <tr>
@@ -147,19 +147,19 @@
                                 {{range $i, $clip := .Clips}}
                                 <tr>
                                     <td>{{Add $i 1}}</td>
-                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
-                                    <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
+                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}" alt="{{.Title}}"></td>
+                                    <td class="title" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
                                     <td>{{FormatWithCommas .Views}}</td>
                                     <td>{{.Duration}}s</td>
-                                    <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
+                                    <td class="date">{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>
                         </table>
-                        <a class="full-list-btn" href="/clips?category={{.Slug}}">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
-                          </svg></a>
                     </div>
+                    <a class="full-list-btn" aria-label="{{.Category.Name}} Clips" href="/clips?category={{.Slug}}">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                        </svg></a>
                 </div>
             </div>
 
@@ -172,7 +172,7 @@
                     </div>
                     <h2>{{.Category.Name}} growth charts on Kick</h2>
                 </div>
-                <div class="card" id="growth-chart" style="width: 100%; height: 300px;"></div>
+                <div class="card chart" id="growth-chart" style="width: 100%; height: 300px;"></div>
             </div>
         </main>
 

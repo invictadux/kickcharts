@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>{{.Channel.Username}}- Kick Stats, Analytics and Channel Overview</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="#000">
 
         <link rel="icon" type="image/png" href="/static/images/logo.png">
         <link rel="stylesheet" href="/static/css/main.css">
@@ -47,19 +47,19 @@
         <main>
             <div class="channel">
                 <div style="position: relative;">
-                    <img src="{{.Channel.Picture}}">
+                    <img src="{{.Channel.Picture}}" alt="{{.Channel.Username}} Profile Picture">
                     {{if .Channel.Live}}<div class="live-circle big"></div>{{end}}
                 </div>
                 <div class="flex-v-0" style="align-items: start;">
                     <h2>{{.Channel.Username}}</h2>
                     <p>{{.Channel.Description}}</p>
                     <div class="channel-contacts">
-                        {{if ne .Channel.Discord ""}}<a href="https://discord.com/invite/{{.Channel.Discord}}" target="_blank">{{template "discord-svg"}}</a>{{end}}
-                        {{if ne .Channel.Facebook ""}}<a href="https://www.facebook.com/{{.Channel.Facebook}}" target="_blank">{{template "facebook-svg"}}</a>{{end}}
-                        {{if ne .Channel.Instagram ""}}<a href="https://www.instagram.com/{{.Channel.Instagram}}" target="_blank">{{template "instagram-svg"}}</a>{{end}}
-                        {{if ne .Channel.Tiktok ""}}<a href="https://www.tiktok.com/@{{.Channel.Tiktok}}" target="_blank">{{template "tiktok-svg"}}</a>{{end}}
-                        {{if ne .Channel.Twitter ""}}<a href="https://x.com/{{.Channel.Twitter}}" target="_blank">{{template "twitter-svg"}}</a>{{end}}
-                        {{if ne .Channel.Youtube ""}}<a href="https://www.youtube.com/@{{.Channel.Youtube}}" target="_blank">{{template "youtube-svg"}}</a>{{end}}
+                        {{if ne .Channel.Discord ""}}<a href="https://discord.com/invite/{{.Channel.Discord}}" aria-label="{{.Channel.Username}} Discord" target="_blank">{{template "discord-svg"}}</a>{{end}}
+                        {{if ne .Channel.Facebook ""}}<a href="https://www.facebook.com/{{.Channel.Facebook}}" aria-label="{{.Channel.Username}} Facebook" target="_blank">{{template "facebook-svg"}}</a>{{end}}
+                        {{if ne .Channel.Instagram ""}}<a href="https://www.instagram.com/{{.Channel.Instagram}}" aria-label="{{.Channel.Username}} Instagram" target="_blank">{{template "instagram-svg"}}</a>{{end}}
+                        {{if ne .Channel.Tiktok ""}}<a href="https://www.tiktok.com/@{{.Channel.Tiktok}}" aria-label="{{.Channel.Username}} Tiktok" target="_blank">{{template "tiktok-svg"}}</a>{{end}}
+                        {{if ne .Channel.Twitter ""}}<a href="https://x.com/{{.Channel.Twitter}}" aria-label="{{.Channel.Username}} X (twitter)" target="_blank">{{template "twitter-svg"}}</a>{{end}}
+                        {{if ne .Channel.Youtube ""}}<a href="https://www.youtube.com/@{{.Channel.Youtube}}" aria-label="{{.Channel.Username}} Youtube" target="_blank">{{template "youtube-svg"}}</a>{{end}}
                     </div>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                     <h2>Latest Clips</h2>
                 </div>
                 <div>
-                    <div class="table-0">
+                    <div class="table-container">
                         <table class="table1">
                             <thead>
                                 <tr>
@@ -110,23 +110,23 @@
                                 {{range $i, $clip := .Clips}}
                                 <tr>
                                     <td>{{Add $i 1}}</td>
-                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}"></td>
-                                    <td style="cursor: pointer; text-align: left;" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
+                                    <td style="cursor: pointer;" onclick="PlayClip('{{.URL}}')"><img class="clip-img" src="{{.Thumbnail}}" alt="{{.Title}} - Kick Charts"></td>
+                                    <td class="title" onclick="PlayClip('{{.URL}}')">{{.Title}}</td>
                                     <td>{{FormatWithCommas .Views}}</td>
                                     <td>{{.Duration}}s</td>
-                                    <td>{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
+                                    <td class="date">{{FormatDate .CreatedAt "Jan 02, 2006 15:04"}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>
                         </table>
-                        <a class="full-list-btn" href="/clips?channel={{.Channel.Slug}}">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
-                          </svg></a>
                     </div>
+                    <a class="full-list-btn" aria-label="{{.Channel.Username}} Clips" href="/clips?channel={{.Channel.Slug}}">Go to full list <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8"/>
+                        </svg></a>
                 </div>
             </div>
 
-            <div class="flex-h-0">
+            <div class="oks">
                 <div class="flex-v-0">
                     <div class="flex-h-0">
                         <div class="b">
@@ -137,7 +137,7 @@
                         </div>
                         <h2>Viewers</h2>
                     </div>
-                    <div class="card" id="viewers-chart" style="width: 100%; height: 300px;"></div>
+                    <div class="card chart" id="viewers-chart" style="width: 100%; height: 300px;"></div>
                 </div>
 
                 <div class="flex-v-0">
@@ -149,7 +149,7 @@
                         </div>
                         <h2>Followers</h2>
                     </div>
-                    <div class="card" id="followers-chart" style="width: 100%; height: 300px;"></div>
+                    <div class="card chart" id="followers-chart" style="width: 100%; height: 300px;"></div>
                 </div>
             </div>
 
@@ -162,7 +162,7 @@
                     </div>
                     <h2>{{.Channel.Username}} growth charts on Kick</h2>
                 </div>
-                <div class="card" id="growth-chart" style="width: 100%; height: 300px;"></div>
+                <div class="card chart" id="growth-chart" style="width: 100%; height: 300px;"></div>
             </div>
         </main>
 

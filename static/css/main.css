@@ -145,13 +145,15 @@ main {
 
 /*---------------------- Table ----------------------*/
 
-.table-0 {
+.table-container {
     width: 100%;
+    overflow-x: auto;
     background: var(--card-color);
-    border-radius: .5em;
+    border-radius: .5em 0.5em 0 0;
 }
 
 .table1 {
+    font-size: .95em;
     border-spacing: 0;
     border-collapse: collapse;
     width: 100%;
@@ -170,6 +172,16 @@ main {
 
 .table1 td {
     padding: 0 .8em;
+}
+
+.table1 .title {
+    cursor: pointer; 
+    text-align: left;
+    min-width: 200px;
+}
+
+.table1 .date {
+    min-width: 140px;
 }
 
 .table1 a {
@@ -306,6 +318,7 @@ main {
 /*---------------------- Footer ----------------------*/
 
 footer {
+    margin: 0 1em;
     display: flex;
     border-top: 1px solid var(--border);
 }
@@ -755,5 +768,38 @@ footer a:hover {
     }
     100% {
         box-shadow: 0 0 0 5px rgba(255, 12, 12, 0);
+    }
+}
+
+.list-header {
+    width: 100%;
+    display: flex;
+    gap: .5em;
+    justify-content: space-between;
+}
+
+.sort-select {
+    width: 200px;
+    align-self: end;
+}
+
+/*-------------------------------------------------------------------------------*/
+
+@media (max-width: 1000px) {
+    main {
+        padding: .5em;
+    }
+
+    .oks {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .list-header {
+        flex-direction: column;
+    }
+
+    .chart {
+        height: 200px !important;
     }
 }
