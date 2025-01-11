@@ -94,6 +94,7 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	clips, _ := db.GetClips(url.Values{}, 0, 10)
 	peak30DViews, peak30DViewsDate, allTimePeakViews, allTimePeakViewsDate, avg7DViews := db.GetOverallViewsStats()
 	peak30DChannels, peak30DChannelsDate, allTimePeakChannels, allTimePeakChannelsDate, avg7DChannels := db.GetOverallChannelsStats()
+	chartStats := db.GetViewersChartStats("w")
 
 	page := map[string]interface{}{}
 	page["ChannelsChart"] = channelsChart
@@ -119,6 +120,7 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	page["MostCategoryViews"] = mostViews
 	page["MostCategoryChannels"] = mostChannels
 	page["MostChannelViews"] = mostChannelViews
+	page["ChartStats"] = chartStats
 
 	indexTemplate.Execute(w, page)
 }

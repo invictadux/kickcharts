@@ -411,7 +411,7 @@ func GetAllClips() {
 }
 
 func Run() {
-	offset, limit := 0, 2000
+	offset, limit := 0, 5000
 
 	for {
 		now := time.Now().UTC()

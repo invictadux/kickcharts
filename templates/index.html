@@ -388,6 +388,10 @@
             const views_dates = {{.ViewsChart.Dates}};
             const views_values = {{.ViewsChart.Values}};
 
+            const w_dates = {{.ChartStats.dates}};
+            const w_avg = {{.ChartStats.avg}};
+            const w_peak = {{.ChartStats.peak}};
+
             var chart1 = echarts.init(document.getElementById('chart-views'), 'light', {
                 renderer: 'canvas',
                 useDirtyRect: false
@@ -715,7 +719,7 @@
                 },
                 xAxis: {
                     type: 'category',
-                    data: channels_dates,
+                    data: w_dates,
                     axisLabel: { show: false },
                     axisLine: { show: false },
                     axisTick: { show: false }, 
@@ -731,22 +735,39 @@
 					}
                 },
                 series: [
-                {
-                    name: 'Viewers', 
-                    data: channels_values,
-                    type: 'line',
-                    smooth: true,
-                    lineStyle: {
-                        width: 1
+                    {
+                        name: 'Peak Viewers', 
+                        data: w_peak,
+                        type: 'line',
+                        smooth: true,
+                        lineStyle: {
+                            width: 1
+                        },
+                        itemStyle: {
+                            color: '#35da3a'
+                        },
+                        areaStyle: {
+                            color: '#35da3a',
+                            opacity: 0.5
+                        },
                     },
-                    itemStyle: {
-                        color: '#35da3a'
-                    },
-                    areaStyle: {
-                        color: '#35da3a',
-                        opacity: 0.3
-                    },
-                }]
+                    {
+                        name: 'Average Viewers', 
+                        data: w_avg,
+                        type: 'line',
+                        smooth: true,
+                        lineStyle: {
+                            width: 1
+                        },
+                        itemStyle: {
+                            color: '#ffd100'
+                        },
+                        areaStyle: {
+                            color: '#ffd100',
+                            opacity: 0.5
+                        },
+                    }
+                ]
             };
 
             chart1.setOption(option1);

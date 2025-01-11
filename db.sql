@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS channels_followers_chart(
 );
 
 CREATE INDEX channels_followers_chart_idx_1 ON channels_followers_chart(ts, n);
+CREATE INDEX channels_followers_chart_idx_2 ON channels_followers_chart(slug, ts);
 
 CREATE TABLE IF NOT EXISTS channels_views_chart(
     slug TEXT NOT NULL,
@@ -87,6 +88,7 @@ CREATE TABLE IF NOT EXISTS channels_views_chart(
 );
 
 CREATE INDEX channels_views_chart_idx_1 ON channels_views_chart(ts, n);
+CREATE INDEX channels_views_chart_idx_2 ON channels_views_chart(slug, ts);
 
 
 CREATE TABLE IF NOT EXISTS categories_live_channels_chart(
@@ -96,6 +98,7 @@ CREATE TABLE IF NOT EXISTS categories_live_channels_chart(
 );
 
 CREATE INDEX categories_live_channels_chart_idx_1 ON categories_live_channels_chart(ts, n);
+CREATE INDEX categories_live_channels_chart_idx_2 ON categories_live_channels_chart(slug, ts);
 
 CREATE TABLE IF NOT EXISTS categories_views_chart(
     slug TEXT NOT NULL,
@@ -104,3 +107,4 @@ CREATE TABLE IF NOT EXISTS categories_views_chart(
 );
 
 CREATE INDEX categories_views_chart_idx_1 ON categories_views_chart(ts, n);
+CREATE INDEX categories_views_chart_idx_2 ON categories_views_chart(slug, ts);
